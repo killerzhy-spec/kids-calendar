@@ -300,6 +300,40 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
+
+    /* 左下角版本记录 */
+    .version-fab {
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      z-index: 60;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--primary);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+    }
+
+    .version-panel {
+      position: fixed;
+      left: 16px;
+      bottom: 58px;
+      width: min(360px, calc(100vw - 32px));
+      z-index: 60;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      padding: 12px;
+    }
+
+    .version-panel.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body class="bg-philips">
@@ -525,10 +559,69 @@
   <option>科学</option><option>体育</option><option>美术</option>
 </datalist>
 
+<button id="version-fab" class="version-fab" onclick="toggleVersionPanel()">v1.0.0</button>
+<div id="version-panel" class="version-panel hidden">
+  <div class="flex items-center justify-between mb-2">
+    <h4 class="text-sm font-semibold text-primary">版本记录</h4>
+    <button class="text-secondary hover:text-primary" onclick="toggleVersionPanel(false)">✕</button>
+  </div>
+  <div class="space-y-2">
+    <div>
+      <label class="text-xs text-secondary mb-1 block">版本号</label>
+      <input id="version-input" class="input-philips w-full text-sm" placeholder="例如：v1.2.0">
+    </div>
+    <div>
+      <label class="text-xs text-secondary mb-1 block">版本记录</label>
+      <textarea id="version-notes" rows="6" class="input-philips w-full text-sm whitespace-pre-wrap" placeholder="例如：&#10;- 新增周视图&#10;- 修复日期偏移"></textarea>
+    </div>
+    <div class="flex justify-end gap-2">
+      <button class="btn-secondary" onclick="toggleVersionPanel(false)">关闭</button>
+      <button class="btn-primary" onclick="saveVersionNotes()">保存记录</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let sourceText = '';
 let cards = [];
 let currentFile = null;
+const VERSION_STORAGE_KEY = 'kids_calendar_version_notes';
+
+function toggleVersionPanel(forceOpen) {
+  const panel = document.getElementById('version-panel');
+  if (forceOpen === true) {
+    panel.classList.remove('hidden');
+    return;
+  }
+  if (forceOpen === false) {
+    panel.classList.add('hidden');
+    return;
+  }
+  panel.classList.toggle('hidden');
+}
+
+function saveVersionNotes() {
+  const version = (document.getElementById('version-input').value || 'v1.0.0').trim();
+  const notes = document.getElementById('version-notes').value;
+  const payload = JSON.stringify({ version, notes });
+  localStorage.setItem(VERSION_STORAGE_KEY, payload);
+  document.getElementById('version-fab').textContent = version;
+  alert('版本记录已保存');
+}
+
+function initVersionNotes() {
+  const fallback = { version: 'v1.0.0', notes: '' };
+  let data = fallback;
+  try {
+    const raw = localStorage.getItem(VERSION_STORAGE_KEY);
+    if (raw) data = { ...fallback, ...JSON.parse(raw) };
+  } catch (_) {
+    data = fallback;
+  }
+  document.getElementById('version-input').value = data.version;
+  document.getElementById('version-notes').value = data.notes;
+  document.getElementById('version-fab').textContent = data.version;
+}
 
 /* ─── 模式切换 ────────────────────────────────────────────── */
 function setMode(mode) {
@@ -1096,6 +1189,7 @@ async function saveEdit() {
 /* ─── 页面初始化 ────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   loadList();
+  initVersionNotes();
 });
 
 document.addEventListener('keydown', e => {
