@@ -26,3 +26,6 @@ REMINDER_MINUTES = [1440, 120]
 # ── 访问密码（两者都设置才启用登录验证）──────────────────────
 AUTH_USER     = os.environ.get("AUTH_USER", "")
 AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD", "")
+
+# ── iCal 订阅令牌（设置后开启 /calendar/<token>.ics 订阅源）──────
+CALENDAR_TOKEN = os.environ.get("CALENDAR_TOKEN", "")
