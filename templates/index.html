@@ -341,9 +341,14 @@
 <div class="max-w-3xl mx-auto p-6">
   
   <!-- Header -->
-  <div class="mb-8">
-    <h1 class="text-2xl font-bold text-primary mb-2">作业管理</h1>
-    <p class="text-sm text-secondary">智能整理孩子的学习任务，同步到日历</p>
+  <div class="mb-8 flex items-start justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-primary mb-2">作业管理</h1>
+      <p class="text-sm text-secondary">智能整理孩子的学习任务，同步到日历</p>
+    </div>
+    {% if auth_enabled %}
+    <a href="/logout" class="btn-secondary text-sm whitespace-nowrap" title="退出登录">退出登录</a>
+    {% endif %}
   </div>
 
   <!-- 标签导航 -->

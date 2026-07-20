@@ -16,6 +16,8 @@ db.init_db()
 def _require_auth():
     if not (config.AUTH_USER and config.AUTH_PASSWORD):
         return None
+    if request.path == "/logout":
+        return None
     auth = request.authorization
     if auth and hmac.compare_digest(auth.username or "", config.AUTH_USER) \
             and hmac.compare_digest(auth.password or "", config.AUTH_PASSWORD):
@@ -34,7 +36,29 @@ def index():
         "index.html",
         children=config.CHILDREN,
         has_api_key=bool(config.OPENAI_API_KEY),
+        auth_enabled=bool(config.AUTH_USER and config.AUTH_PASSWORD),
     )
+
+
+@app.route("/logout")
+def logout():
+    """退出登录：用无效凭据覆盖浏览器缓存的 Basic Auth，再返回首页。"""
+    html = """<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>退出登录</title></head>
+<body style="font-family:sans-serif;text-align:center;padding-top:80px;color:#333">
+<p>正在退出登录…</p>
+<script>
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/', false, 'logout', 'logout-' + Date.now());
+    xhr.send();
+  } catch (e) {}
+  setTimeout(function () { location.href = '/'; }, 300);
+</script>
+</body>
+</html>"""
+    return Response(html, 200, {"Content-Type": "text/html; charset=utf-8"})
 
 
 # ── API ──────────────────────────────────────────────────────────────────────
