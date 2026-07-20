@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作业管理 • 孩子学习日历</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    
+    /* 飞利浦风格配色 */
+    :root {
+      --primary: #0066cc;      /* 飞利浦蓝 */
+      --primary-light: #e6f0ff; /* 浅蓝背景 */
+      --zhang: #c9364b;
+      --zhang-light: #fff0f2;
+      --xu: #0066cc;
+      --xu-light: #e6f0ff;
+      --secondary: #666666;    /* 深灰 */
+      --border: #e0e0e0;       /* 浅灰边框 */
+      --bg: #f8f9fa;           /* 浅灰背景 */
+    }
+    
+    .bg-philips { background: var(--bg); }
+    .text-primary { color: var(--primary); }
+    .border-light { border-color: var(--border); }
+    
+    /* 卡片风格 - 极简设计 */
+    .card-philips {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
+      padding: 20px;
+    }
+    
+    /* 标签风格 */
+    .tab-philips {
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 500;
+      color: #999;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab-philips.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    /* 按钮风格 */
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      background: #0052a3;
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
+    }
+
+    .btn-primary:disabled {
+      background: #8ab8e6;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: var(--secondary);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+      background: var(--bg);
+      border-color: #999;
+    }
+    
+    /* 输入框风格 */
+    .input-philips {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: white;
+      transition: all 0.3s ease;
+    }
+    
+    .input-philips:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    
+    /* 日历单元格 */
+    .cal-cell {
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: white;
+    }
+    
+    .cal-cell:hover {
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+    }
+    
+    .cal-cell.other-month {
+      background: var(--bg);
+      color: #999;
+    }
+    
+    .cal-cell.has-task {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .cal-cell.child-zhang {
+      background: var(--zhang-light);
+      border-color: var(--zhang);
+    }
+
+    .cal-cell.child-xu {
+      background: var(--xu-light);
+      border-color: var(--xu);
+    }
+
+    .cal-cell.child-both {
+      background: linear-gradient(135deg, var(--zhang-light) 0 50%, var(--xu-light) 50% 100%);
+      border-color: #7f6aa9;
+    }
+
+    .calendar-legend-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 4px;
+      border-radius: 50%;
+    }
+
+    .calendar-legend-dot.zhang { background: var(--zhang); }
+    .calendar-legend-dot.xu { background: var(--xu); }
+
+    .calendar-child-markers {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 10px;
+      margin-top: 3px;
+    }
+
+    .calendar-child-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      color: var(--secondary);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 16px;
+    }
+
+    .calendar-child-marker {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .calendar-child-marker.zhang { background: var(--zhang); }
+    .calendar-child-marker.xu { background: var(--xu); }
+
+    .detail-zhang {
+      background: var(--zhang-light);
+      border-left-color: var(--zhang);
+    }
+
+    .detail-xu {
+      background: var(--xu-light);
+      border-left-color: var(--xu);
+    }
+    
+    /* 标志 */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .badge-primary {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    
+    .badge-warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .badge-success {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    /* 选择框 */
+    select {
+      appearance: none;
+      background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 8px center;
+      background-size: 12px;
+      padding-right: 32px;
+      cursor: pointer;
+    }
+    
+    /* 模态框 */
+    .modal-overlay {
+      background: rgba(0,0,0,0.4);
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+    
+    /* 拖放区域 */
+    .drag-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+      background: var(--bg);
+    }
+    
+    .drag-zone.drag-over {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+    
+    /* 文本 */
+    .text-sm { font-size: 13px; }
+    .text-base { font-size: 15px; }
+    .text-lg { font-size: 17px; }
+    .text-xl { font-size: 20px; }
+    .text-2xl { font-size: 28px; }
+    
+    .font-normal { font-weight: 400; }
+    .font-medium { font-weight: 500; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    
+    /* 留白 */
+    .space-y-4 { gap: 16px; display: flex; flex-direction: column; }
+    .space-y-6 { gap: 24px; display: flex; flex-direction: column; }
+    
+    /* 文本截断 */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-wrap: break-word;
+      word-break: break-word;
+    }
+    
+    /* 保留文本格式 */
+    .whitespace-pre-wrap {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body class="bg-philips">
+
+<div class="max-w-3xl mx-auto p-6">
+  
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-primary mb-2">作业管理</h1>
+    <p class="text-sm text-secondary">智能整理孩子的学习任务，同步到日历</p>
+  </div>
+
+  <!-- 标签导航 -->
+  <div class="flex gap-8 border-b border-light mb-6">
+    <button class="tab-philips active" onclick="switchTab('list')">📋 作业清单</button>
+    <button class="tab-philips" onclick="switchTab('parse')">✏️ 添加作业</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       Tab 1：作业清单
+       ════════════════════════════════════════════════════ -->
+  <div id="panel-list">
+    
+    <!-- 筛选工具栏 -->
+    <div class="mb-6 flex gap-3 items-center flex-wrap">
+      <select id="filter-child" class="input-philips" onchange="loadList()">
+        <option value="">全部孩子</option>
+        {% for c in children %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+      
+      <select id="filter-status" class="input-philips" onchange="loadList()">
+        <option value="">全部状态</option>
+        <option value="未提交">未提交</option>
+        <option value="已提交">已提交</option>
+        <option value="待订正">待订正</option>
+      </select>
+      
+      <div class="flex gap-2 items-center ml-auto">
+        <span class="text-xs text-secondary"><i class="calendar-legend-dot zhang"></i>张诺然</span>
+        <span class="text-xs text-secondary"><i class="calendar-legend-dot xu"></i>徐若愚</span>
+        <button class="btn-secondary" id="btn-list-view" onclick="switchListView('list')">📋 列表</button>
+        <button class="btn-secondary" id="btn-cal-view" onclick="switchListView('calendar')">📅 日历</button>
+      </div>
+    </div>
+
+    <!-- 列表视图 -->
+    <div id="list-view" class="space-y-4">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary" onclick="shiftListWeek(-1)" title="上一周" aria-label="上一周">←</button>
+          <span id="list-week-title" class="text-sm font-semibold text-primary min-w-[150px] text-center"></span>
+          <button class="btn-secondary" onclick="shiftListWeek(1)" title="下一周" aria-label="下一周">→</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="flex items-center gap-2 text-sm text-secondary cursor-pointer">
+            <input id="select-week-homework" type="checkbox" onchange="toggleSelectCurrentWeek(this.checked)">
+            全选本周
+          </label>
+          <button id="batch-delete-btn" class="btn-secondary" onclick="batchDeleteHomework()" disabled>🗑 删除所选</button>
+        </div>
+      </div>
+      <div id="homework-list"></div>
+    </div>
+
+    <!-- 日历视图 -->
+    <div id="calendar-view" class="hidden space-y-6">
+      <!-- 月份导航 -->
+      <div class="flex items-center justify-between">
+        <button class="btn-secondary" onclick="calPrevMonth()">← 上个月</button>
+        <h2 class="text-lg font-semibold text-primary" id="cal-month-title"></h2>
+        <button class="btn-secondary" onclick="calNextMonth()">下个月 →</button>
+      </div>
+
+      <!-- 日历网格 -->
+      <div class="card-philips">
+        <!-- 周标题 -->
+        <div class="grid grid-cols-7 gap-2 mb-4">
+          <div class="text-center font-semibold text-secondary text-sm">日</div>
+          <div class="text-center font-semibold text-secondary text-sm">一</div>
+          <div class="text-center font-semibold text-secondary text-sm">二</div>
+          <div class="text-center font-semibold text-secondary text-sm">三</div>
+          <div class="text-center font-semibold text-secondary text-sm">四</div>
+          <div class="text-center font-semibold text-secondary text-sm">五</div>
+          <div class="text-center font-semibold text-secondary text-sm">六</div>
+        </div>
+        <!-- 日期格子 -->
+        <div id="cal-grid" class="grid grid-cols-7 gap-2"></div>
+      </div>
+
+      <!-- 日期详情 -->
+      <div id="cal-detail" class="hidden card-philips">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-primary" id="detail-date-title"></h3>
+          <button onclick="closeDateDetail()" class="text-secondary hover:text-primary text-lg">✕</button>
+        </div>
+        <div id="detail-homework-list" class="space-y-3"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       Tab 2：添加作业
+       ════════════════════════════════════════════════════ -->
+  <div id="panel-parse" class="hidden">
+    
+    <!-- 输入区 -->
+    <div class="card-philips space-y-4 mb-6">
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <label class="text-sm font-medium text-secondary mb-2 block">选择孩子</label>
+          <select id="child-select" class="input-philips w-full">
+            {% for c in children %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+        
+        <div class="flex gap-2 items-end">
+          <button class="btn-secondary" id="mode-img" onclick="setMode('image')">📷 截图</button>
+          <button class="btn-primary" id="mode-txt" onclick="setMode('text')">📝 文字</button>
+        </div>
+      </div>
+
+      <!-- 截图拖放 -->
+      <div id="image-panel" class="hidden">
+        <div class="drag-zone" id="drop-zone"
+          onclick="document.getElementById('img-file').click()"
+          ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+          <div id="drop-placeholder" class="text-center">
+            <div class="text-3xl mb-3">📸</div>
+            <p class="text-sm text-secondary">将截图拖放到这里或<span class="text-primary font-medium cursor-pointer">点击选择</span></p>
+          </div>
+          <div id="drop-preview" class="hidden text-center">
+            <img id="preview-img" class="max-h-40 mx-auto rounded-lg mb-2">
+            <p class="text-xs text-secondary" id="preview-name"></p>
+          </div>
+        </div>
+        <input type="file" id="img-file" accept="image/*" class="hidden" onchange="onFileSelect(event)">
+        
+        <div class="flex gap-2 mt-3">
+          <button class="btn-primary" onclick="ocrImage()">🔍 识别图片</button>
+          <button class="btn-secondary hidden" id="clear-img-btn" onclick="clearImage()">清除</button>
+        </div>
+      </div>
+
+      <!-- 文字输入 -->
+      <div id="text-panel">
+        <label class="text-sm font-medium text-secondary mb-2 block">粘贴作业内容</label>
+        <textarea id="msg-input" rows="6" class="input-philips w-full"
+          placeholder="例如：数学老师：完成练习册 P34-35，明天早上 8 点前上交。&#10;语文老师：背诵第三课课文，明天默写。"></textarea>
+        
+        <div class="flex gap-2 mt-3">
+          <button class="btn-primary" onclick="parseHomework()">🤖 AI 解析</button>
+          <button class="btn-secondary" onclick="addManualCard()">+ 手动添加</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 解析结果 -->
+    <div id="parse-results" class="hidden">
+      <h3 class="text-lg font-semibold text-primary mb-4">
+        解析结果 <span class="text-sm text-secondary font-normal" id="hw-count"></span>
+      </h3>
+
+      <div id="homework-cards" class="space-y-4 mb-6"></div>
+
+      <div class="card-philips flex items-center gap-4">
+        <label class="flex items-center gap-2 cursor-pointer flex-1">
+          <input type="checkbox" id="create-calendar" checked class="w-4 h-4 rounded">
+          <span class="text-sm text-secondary">保存到日历并设置提醒</span>
+        </label>
+        <button id="save-homework-btn" class="btn-primary" onclick="saveHomework()">💾 保存</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 编辑对话框 -->
+  <div id="edit-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
+    <div class="modal-content max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-primary">编辑作业</h2>
+        <button onclick="closeEditModal()" class="text-secondary hover:text-primary text-2xl leading-none">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-sm font-medium text-secondary mb-2 block">孩子</label>
+          <input id="edit-child" type="text" disabled class="input-philips w-full bg-gray-50">
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-secondary mb-2 block">科目</label>
+          <input id="edit-subject" type="text" list="subject-list" class="input-philips w-full">
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-secondary mb-2 block">作业内容</label>
+          <textarea id="edit-content" rows="3" class="input-philips w-full resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-secondary mb-2 block">具体要求</label>
+          <textarea id="edit-requirements" rows="2" class="input-philips w-full whitespace-pre-wrap"></textarea>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-secondary mb-2 block">截止时间</label>
+          <input id="edit-deadline" type="datetime-local" class="input-philips w-full">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button class="btn-secondary flex-1" onclick="closeEditModal()">取消</button>
+        <button class="btn-primary flex-1" onclick="saveEdit()">保存</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<datalist id="subject-list">
+  <option>语文</option><option>数学</option><option>英语</option>
+  <option>科学</option><option>体育</option><option>美术</option>
+</datalist>
+
+<script>
+let sourceText = '';
+let cards = [];
+let currentFile = null;
+
+/* ─── 模式切换 ────────────────────────────────────────────── */
+function setMode(mode) {
+  const isImg = mode === 'image';
+  document.getElementById('image-panel').classList.toggle('hidden', !isImg);
+  document.getElementById('text-panel').classList.toggle('hidden', isImg);
+  updateButtonState('mode-img', isImg);
+  updateButtonState('mode-txt', !isImg);
+}
+
+function updateButtonState(id, isActive) {
+  const btn = document.getElementById(id);
+  if (isActive) {
+    btn.className = 'btn-primary';
+  } else {
+    btn.className = 'btn-secondary';
+  }
+}
+
+/* ─── 截图处理 ────────────────────────────────────────────── */
+function onDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function onDragLeave(e) { document.getElementById('drop-zone').classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) setImageFile(e.dataTransfer.files[0]);
+}
+function onFileSelect(e) { if (e.target.files[0]) setImageFile(e.target.files[0]); }
+
+function setImageFile(file) {
+  if (!file.type.startsWith('image/')) { alert('请选择图片'); return; }
+  currentFile = file;
+  const url = URL.createObjectURL(file);
+  document.getElementById('preview-img').src = url;
+  document.getElementById('preview-name').textContent = file.name + ' · ' + (file.size/1024).toFixed(0) + 'KB';
+  document.getElementById('drop-placeholder').classList.add('hidden');
+  document.getElementById('drop-preview').classList.remove('hidden');
+  document.getElementById('clear-img-btn').classList.remove('hidden');
+}
+
+function clearImage() {
+  currentFile = null;
+  document.getElementById('img-file').value = '';
+  document.getElementById('drop-placeholder').classList.remove('hidden');
+  document.getElementById('drop-preview').classList.add('hidden');
+  document.getElementById('clear-img-btn').classList.add('hidden');
+}
+
+/* ─── 标签切换 ────────────────────────────────────────────── */
+function switchTab(tab) {
+  const panels = { list: document.getElementById('panel-list'), parse: document.getElementById('panel-parse') };
+  const btns = document.querySelectorAll('.tab-philips');
+  
+  panels.list.classList.toggle('hidden', tab !== 'list');
+  panels.parse.classList.toggle('hidden', tab !== 'parse');
+  
+  btns[0].classList.toggle('active', tab === 'list');
+  btns[1].classList.toggle('active', tab === 'parse');
+  
+  if (tab === 'list') {
+    const isCalendarVisible = !document.getElementById('calendar-view').classList.contains('hidden');
+    if (isCalendarVisible) renderCalendar();
+    else loadList();
+  }
+}
+
+/* ─── 解析作业 ────────────────────────────────────────────── */
+async function parseHomework() {
+  const text = document.getElementById('msg-input').value.trim();
+  if (!text) { alert('请输入作业内容'); return; }
+  
+  const child = document.getElementById('child-select').value;
+  try {
+    const res = await fetch('/api/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, child_name: child })
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    
+    sourceText = data.source_text;
+    cards = data.homeworks;
+    renderCards();
+    document.getElementById('parse-results').classList.remove('hidden');
+  } catch(e) { alert('解析失败：' + e.message); }
+}
+
+async function ocrImage() {
+  if (!currentFile) { alert('请先选择图片'); return; }
+  const child = document.getElementById('child-select').value;
+  
+  try {
+    const fd = new FormData();
+    fd.append('image', currentFile);
+    fd.append('child_name', child);
+    
+    const res = await fetch('/api/ocr', { method: 'POST', body: fd });
+    const data = await res.json();
+    
+    if (data.error) { alert('识别失败：' + data.error); return; }
+    
+    cards = data.homeworks || [];
+    sourceText = data.ocr_text || '';
+    if (cards.length) {
+      renderCards();
+      document.getElementById('parse-results').classList.remove('hidden');
+    } else {
+      alert('未识别到作业');
+    }
+  } catch(e) { alert('请求失败：' + e.message); }
+}
+
+/* ─── 手动添加 ────────────────────────────────────────────── */
+function addManualCard() {
+  const child = document.getElementById('child-select').value;
+  cards.push({ child_name: child, subject: '', content: '', requirements: '', deadline: '' });
+  renderCards();
+  document.getElementById('parse-results').classList.remove('hidden');
+}
+
+/* ─── 渲染卡片 ────────────────────────────────────────────── */
+function renderCards() {
+  const wrap = document.getElementById('homework-cards');
+  document.getElementById('hw-count').textContent = `共 ${cards.length} 条`;
+  
+  wrap.innerHTML = cards.map((hw, i) => {
+    const recurrenceDays = (hw.recurrence_pattern || '').split(',').filter(Boolean);
+    const hasRecurrence = recurrenceDays.length > 0;
+    const weekdayOptions = [
+      [1, '周一'], [2, '周二'], [3, '周三'], [4, '周四'],
+      [5, '周五'], [6, '周六'], [0, '周日']
+    ].map(([day, label]) => `
+      <label class="flex items-center gap-1 text-xs text-secondary cursor-pointer">
+        <input type="checkbox" value="${day}" ${recurrenceDays.includes(String(day)) ? 'checked' : ''}
+          onchange="toggleRecurrenceDay(${i}, ${day}, this.checked)">
+        ${label}
+      </label>
+    `).join('');
+
+    return `
+    <div class="card-philips">
+      <div class="flex items-center justify-between mb-3">
+        <span class="badge badge-primary">作业 ${i+1}</span>
+        <button onclick="removeCard(${i})" class="text-secondary hover:text-primary">✕</button>
+      </div>
+      <div class="space-y-2">
+        <div class="grid grid-cols-2 gap-3">
+          <input placeholder="孩子" value="${hw.child_name}" oninput="cards[${i}].child_name=this.value" class="input-philips text-sm">
+          <input placeholder="科目" list="subject-list" value="${hw.subject}" oninput="cards[${i}].subject=this.value" class="input-philips text-sm">
+        </div>
+        <textarea placeholder="作业内容" oninput="cards[${i}].content=this.value" rows="4" class="input-philips text-sm w-full whitespace-pre-wrap">${hw.content}</textarea>
+        <textarea placeholder="具体要求（可选）" oninput="cards[${i}].requirements=this.value" rows="2" class="input-philips text-sm w-full whitespace-pre-wrap">${hw.requirements}</textarea>
+        <div>
+          <p class="text-xs font-medium text-secondary mb-2">按周重复（选中后自动生成本月剩余日期）</p>
+          <div class="flex flex-wrap gap-x-3 gap-y-2">${weekdayOptions}</div>
+        </div>
+        <div id="deadline-wrap-${i}" class="${hasRecurrence ? 'hidden' : ''}">
+          <label class="text-xs font-medium text-secondary mb-2 block">截止时间</label>
+          <input type="datetime-local" value="${hw.deadline ? hw.deadline.replace(' ','T') : ''}" onchange="cards[${i}].deadline=this.value.replace('T',' ')" class="input-philips text-sm w-full">
+        </div>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function toggleRecurrenceDay(cardIndex, day, checked) {
+  const selected = new Set((cards[cardIndex].recurrence_pattern || '').split(',').filter(Boolean));
+  if (checked) selected.add(String(day));
+  else selected.delete(String(day));
+
+  const weekdayOrder = ['1', '2', '3', '4', '5', '6', '0'];
+  cards[cardIndex].recurrence_pattern = weekdayOrder.filter(value => selected.has(value)).join(',');
+  if (selected.size) cards[cardIndex].deadline = '';
+  document.getElementById(`deadline-wrap-${cardIndex}`).classList.toggle('hidden', selected.size > 0);
+}
+
+function removeCard(i) {
+  cards.splice(i, 1);
+  renderCards();
+  if (!cards.length) document.getElementById('parse-results').classList.add('hidden');
+}
+
+/* ─── 保存作业 ────────────────────────────────────────────── */
+let isSavingHomework = false;
+
+async function saveHomework() {
+  if (!cards.length) { alert('没有要保存的作业'); return; }
+  if (isSavingHomework) return;
+
+  const saveButton = document.getElementById('save-homework-btn');
+  isSavingHomework = true;
+  saveButton.disabled = true;
+  saveButton.textContent = '保存中…';
+  
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        homeworks: cards, 
+        source_text: sourceText,
+        create_calendar: document.getElementById('create-calendar').checked
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '保存失败');
+    const duplicateMessage = data.duplicates ? `，已跳过 ${data.duplicates} 条重复作业` : '';
+    alert(`✅ 已保存 ${data.saved} 条作业${duplicateMessage}`);
+    
+    if (data.saved > 0) {
+      cards = [];
+      document.getElementById('homework-cards').innerHTML = '';
+      document.getElementById('parse-results').classList.add('hidden');
+      document.getElementById('msg-input').value = '';
+    }
+    loadList();
+  } catch(e) {
+    alert('保存失败：' + e.message);
+  } finally {
+    isSavingHomework = false;
+    saveButton.disabled = false;
+    saveButton.textContent = '💾 保存';
+  }
+}
+
+/* ─── 作业清单 ────────────────────────────────────────────── */
+let currentListWeekStart = getWeekStart(new Date());
+let selectedHomeworkIds = new Set();
+
+function getWeekStart(date) {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  const day = result.getDay();
+  result.setDate(result.getDate() + (day === 0 ? -6 : 1 - day));
+  return result;
+}
+
+function updateListWeekTitle() {
+  const weekEnd = new Date(currentListWeekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  const startLabel = currentListWeekStart.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+  const endLabel = weekEnd.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+  document.getElementById('list-week-title').textContent = `${startLabel} - ${endLabel}`;
+}
+
+function shiftListWeek(offset) {
+  currentListWeekStart.setDate(currentListWeekStart.getDate() + offset * 7);
+  loadList();
+}
+
+async function loadList() {
+  const childF = document.getElementById('filter-child').value;
+  const statusF = document.getElementById('filter-status').value;
+  const weekStartKey = formatLocalDateKey(currentListWeekStart);
+  const weekEnd = new Date(currentListWeekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  const weekEndKey = formatLocalDateKey(weekEnd);
+  
+  const res = await fetch('/api/homework');
+  const data = await res.json();
+  let list = data.homeworks.filter(hw => {
+    const deadlineKey = (hw.deadline || '').split(' ')[0];
+    return deadlineKey >= weekStartKey && deadlineKey <= weekEndKey;
+  });
+  
+  if (childF) list = list.filter(h => h.child_name === childF);
+  if (statusF) list = list.filter(h => h.submission_status === statusF || h.correction_status === statusF);
+  
+  selectedHomeworkIds.clear();
+  updateListWeekTitle();
+  renderList(list);
+}
+
+function renderList(list) {
+  const wrap = document.getElementById('homework-list');
+  document.getElementById('select-week-homework').checked = false;
+  updateBatchDeleteButton();
+  if (!list.length) {
+    wrap.innerHTML = '<div class="text-center text-secondary py-12">暂无作业</div>';
+    return;
+  }
+  
+  wrap.innerHTML = list.map(hw => {
+    const dl = hw.deadline ? new Date(hw.deadline).toLocaleString('zh-CN', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}) : '未设定';
+    const overdue = hw.deadline && new Date(hw.deadline) < new Date() && hw.submission_status !== '已提交';
+    const canEdit = !(hw.submission_status === '未提交' && hw.correction_status === '无需订正');
+    
+    return `
+    <div class="card-philips ${canEdit ? 'cursor-pointer hover:shadow-md' : 'opacity-75'} transition-all" onclick="${canEdit ? `editHomework(${hw.id})` : ''}"> 
+      <div class="flex items-start gap-3">
+        <input type="checkbox" data-homework-id="${hw.id}" onclick="event.stopPropagation()" onchange="toggleHomeworkSelection(${hw.id}, this.checked)" class="mt-1 w-4 h-4">
+        <div class="flex-1">
+          <div class="flex items-start justify-between">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="font-semibold text-base">${hw.child_name}</span>
+            <span class="badge badge-primary">${hw.subject}</span>
+            ${overdue ? '<span class="badge badge-warning">逾期</span>' : ''}
+          </div>
+          <p class="text-secondary text-sm mb-2 whitespace-pre-wrap">${hw.content}</p>
+          ${hw.requirements ? `<p class="text-xs text-secondary opacity-70 mb-2 whitespace-pre-wrap">要求：${hw.requirements}</p>` : ''}
+          <p class="text-xs text-secondary opacity-60">📅 ${dl}</p>
+        </div>
+        <button onclick="deleteHw(event, ${hw.id})" class="text-secondary hover:text-primary text-lg">🗑</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-3">
+        <select onchange="updateStatus(${hw.id},'submission_status',this.value)" class="input-philips text-xs flex-1">
+          <option ${hw.submission_status === '未提交' ? 'selected' : ''}>未提交</option>
+          <option ${hw.submission_status === '已提交' ? 'selected' : ''}>已提交</option>
+        </select>
+        <select onchange="updateStatus(${hw.id},'correction_status',this.value)" class="input-philips text-xs flex-1">
+          <option ${hw.correction_status === '无需订正' ? 'selected' : ''}>无需订正</option>
+          <option ${hw.correction_status === '待订正' ? 'selected' : ''}>待订正</option>
+          <option ${hw.correction_status === '已订正' ? 'selected' : ''}>已订正</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHomeworkSelection(id, checked) {
+  if (checked) selectedHomeworkIds.add(id);
+  else selectedHomeworkIds.delete(id);
+  updateBatchDeleteButton();
+}
+
+function toggleSelectCurrentWeek(checked) {
+  document.querySelectorAll('#homework-list input[data-homework-id]').forEach(checkbox => {
+    checkbox.checked = checked;
+    const id = Number(checkbox.dataset.homeworkId);
+    if (checked) selectedHomeworkIds.add(id);
+    else selectedHomeworkIds.delete(id);
+  });
+  updateBatchDeleteButton();
+}
+
+function updateBatchDeleteButton() {
+  const button = document.getElementById('batch-delete-btn');
+  button.disabled = selectedHomeworkIds.size === 0;
+  button.textContent = selectedHomeworkIds.size ? `🗑 删除所选（${selectedHomeworkIds.size}）` : '🗑 删除所选';
+}
+
+async function batchDeleteHomework() {
+  if (!selectedHomeworkIds.size) return;
+  const ids = [...selectedHomeworkIds];
+  if (!confirm(`确认删除选中的 ${ids.length} 条作业？`)) return;
+
+  const res = await fetch('/api/homework/batch-delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids })
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    alert(data.error || '批量删除失败');
+    return;
+  }
+  loadList();
+}
+
+async function updateStatus(id, field, value) {
+  await fetch(`/api/homework/${id}/status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ field, value })
+  });
+}
+
+async function deleteHw(e, id) {
+  e.stopPropagation();
+  if (!confirm('确认删除？')) return;
+  await fetch(`/api/homework/${id}`, { method: 'DELETE' });
+  loadList();
+}
+
+/* ─── 列表/日历切换 ────────────────────────────────────────────── */
+function switchListView(mode) {
+  const isCalendar = mode === 'calendar';
+  document.getElementById('list-view').classList.toggle('hidden', isCalendar);
+  document.getElementById('calendar-view').classList.toggle('hidden', !isCalendar);
+  
+  document.getElementById('btn-list-view').className = !isCalendar ? 'btn-primary' : 'btn-secondary';
+  document.getElementById('btn-cal-view').className = isCalendar ? 'btn-primary' : 'btn-secondary';
+  
+  if (isCalendar) renderCalendar();
+  else loadList();
+}
+
+/* ─── 日历视图 ────────────────────────────────────────────── */
+let currentCalendarDate = new Date();
+let allHomeworkData = [];
+
+function formatLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+async function renderCalendar() {
+  const res = await fetch('/api/homework');
+  const data = await res.json();
+  allHomeworkData = data.homeworks;
+  
+  const year = currentCalendarDate.getFullYear();
+  const month = currentCalendarDate.getMonth();
+  
+  document.getElementById('cal-month-title').textContent = 
+    currentCalendarDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' });
+  
+  const firstDay = new Date(year, month, 1);
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate() - firstDay.getDay());
+  
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  
+  const hwByDate = {};
+  allHomeworkData.forEach(hw => {
+    if (hw.deadline) {
+      const d = hw.deadline.split(' ')[0];
+      hwByDate[d] = hwByDate[d] || [];
+      hwByDate[d].push(hw);
+    }
+  });
+  
+  for (let i = 0; i < 42; i++) {
+    const cellDate = new Date(startDate);
+    cellDate.setDate(cellDate.getDate() + i);
+    const isCurrentMonth = cellDate.getMonth() === month;
+    const dateStr = formatLocalDateKey(cellDate);
+    const hws = hwByDate[dateStr] || [];
+    
+    const childNames = new Set(hws.map(h => h.child_name));
+    const childColor = childNames.size > 1 ? 'child-both'
+      : childNames.has('张诺然') ? 'child-zhang'
+      : childNames.has('徐若愚') ? 'child-xu' : '';
+    const zhangCount = hws.filter(h => h.child_name === '张诺然').length;
+    const xuCount = hws.filter(h => h.child_name === '徐若愚').length;
+    const childMarkers = [
+      zhangCount ? `<span class="calendar-child-count" title="张诺然 ${zhangCount} 项"><span class="calendar-child-marker zhang"></span>${zhangCount}</span>` : '',
+      xuCount ? `<span class="calendar-child-count" title="徐若愚 ${xuCount} 项"><span class="calendar-child-marker xu"></span>${xuCount}</span>` : ''
+    ].join('');
+    
+    const cell = document.createElement('div');
+    cell.className = `cal-cell ${!isCurrentMonth ? 'other-month' : ''} ${hws.length ? 'has-task' : ''} ${hws.length ? childColor : ''}`;
+    
+    cell.innerHTML = `
+      <div class="font-semibold text-base">${cellDate.getDate()}</div>
+      ${childMarkers ? `<div class="calendar-child-markers">${childMarkers}</div>` : ''}
+    `;
+    
+    if (hws.length > 0) {
+      cell.onclick = () => showDateDetail(dateStr, hws);
+    }
+    grid.appendChild(cell);
+  }
+
+  const today = new Date();
+  if (year === today.getFullYear() && month === today.getMonth()) {
+    const todayKey = formatLocalDateKey(today);
+    showDateDetail(todayKey, hwByDate[todayKey] || []);
+  } else {
+    closeDateDetail();
+  }
+}
+
+function calPrevMonth() {
+  currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+  renderCalendar();
+}
+
+function calNextMonth() {
+  currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+  renderCalendar();
+}
+
+function showDateDetail(dateStr, hws) {
+  const d = new Date(dateStr + 'T00:00:00');
+  document.getElementById('detail-date-title').textContent = 
+    d.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric', weekday: 'long' });
+  
+  const list = document.getElementById('detail-homework-list');
+  if (!hws.length) {
+    list.innerHTML = '<p class="text-sm text-secondary py-3 text-center">今日暂无作业</p>';
+  } else {
+    list.innerHTML = hws.map(hw => {
+    const childColor = hw.child_name === '张诺然' ? 'detail-zhang' : 'detail-xu';
+    return `
+    <div class="${childColor} border-l-4 px-3 py-3 rounded cursor-pointer hover:opacity-80 transition-all" onclick="editHomework(${hw.id})">
+      <div class="font-semibold text-base text-primary">${hw.child_name} · ${hw.subject}</div>
+      <p class="text-sm text-secondary mt-1 whitespace-pre-wrap">${hw.content}</p>
+      ${hw.requirements ? `<p class="text-xs text-secondary mt-1 whitespace-pre-wrap">要求：${hw.requirements}</p>` : ''}
+    </div>
+  `;
+    }).join('');
+  }
+  
+  document.getElementById('cal-detail').classList.remove('hidden');
+}
+
+function closeDateDetail() {
+  document.getElementById('cal-detail').classList.add('hidden');
+}
+
+/* ─── 编辑对话框 ────────────────────────────────────────────── */
+let editingId = null;
+
+async function editHomework(id) {
+  if (!id) return; // 防止空点击
+  const res = await fetch('/api/homework');
+  const data = await res.json();
+  const hw = data.homeworks.find(h => h.id === id);
+  if (!hw) return;
+  
+  // 当作业未提交且无需订正时，不展开编辑框
+  if (hw.submission_status === '未提交' && hw.correction_status === '无需订正') {
+    return;
+  }
+  
+  editingId = id;
+  document.getElementById('edit-child').value = hw.child_name;
+  document.getElementById('edit-subject').value = hw.subject || '';
+  document.getElementById('edit-content').value = hw.content || '';
+  document.getElementById('edit-requirements').value = hw.requirements || '';
+  document.getElementById('edit-deadline').value = hw.deadline ? hw.deadline.replace(' ', 'T') : '';
+  
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+  editingId = null;
+  document.getElementById('edit-modal').classList.add('hidden');
+}
+
+async function saveEdit() {
+  if (!editingId) return;
+  
+  const updates = {
+    subject: document.getElementById('edit-subject').value,
+    content: document.getElementById('edit-content').value,
+    requirements: document.getElementById('edit-requirements').value,
+    deadline: document.getElementById('edit-deadline').value.replace('T', ' '),
+  };
+  
+  try {
+    const res = await fetch(`/api/homework/${editingId}/edit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      closeEditModal();
+      loadList();
+      renderCalendar();
+    }
+  } catch(e) { alert('保存失败：' + e.message); }
+}
+
+/* ─── 页面初始化 ────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadList();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !document.getElementById('edit-modal').classList.contains('hidden')) {
+    closeEditModal();
+  }
+});
+</script>
+
+</body>
+</html>
