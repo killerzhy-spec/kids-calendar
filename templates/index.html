@@ -914,7 +914,7 @@ function renderList(list) {
   wrap.innerHTML = list.map(hw => {
     const dl = hw.deadline ? new Date(hw.deadline).toLocaleString('zh-CN', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}) : '未设定';
     const overdue = hw.deadline && new Date(hw.deadline) < new Date() && hw.submission_status !== '已提交';
-    const canEdit = !(hw.submission_status === '未提交' && hw.correction_status === '无需订正');
+    const canEdit = true;
     
     return `
     <div class="card-philips ${canEdit ? 'cursor-pointer hover:shadow-md' : 'opacity-75'} transition-all" onclick="${canEdit ? `editHomework(${hw.id})` : ''}"> 
@@ -1145,11 +1145,6 @@ async function editHomework(id) {
   const data = await res.json();
   const hw = data.homeworks.find(h => h.id === id);
   if (!hw) return;
-  
-  // 当作业未提交且无需订正时，不展开编辑框
-  if (hw.submission_status === '未提交' && hw.correction_status === '无需订正') {
-    return;
-  }
   
   editingId = id;
   document.getElementById('edit-child').value = hw.child_name;
