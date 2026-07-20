@@ -22,3 +22,7 @@ CALENDAR_NAME = "孩子作业提醒"
 # ── 提前提醒时间（分钟），负数表示事件前 ──────────────────────
 # 1440 = 提前1天，120 = 提前2小时
 REMINDER_MINUTES = [1440, 120]
+
+# ── 访问密码（两者都设置才启用登录验证）──────────────────────
+AUTH_USER     = os.environ.get("AUTH_USER", "")
+AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD", "")

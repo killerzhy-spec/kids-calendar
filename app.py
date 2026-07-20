@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, Response
 from datetime import datetime, timedelta
+import hmac
 
 import config
 import db
@@ -8,6 +9,21 @@ import calendar_writer
 
 app = Flask(__name__)
 db.init_db()
+
+
+# ── 访问密码（仅当 AUTH_USER 与 AUTH_PASSWORD 均配置时生效）──────────
+@app.before_request
+def _require_auth():
+    if not (config.AUTH_USER and config.AUTH_PASSWORD):
+        return None
+    auth = request.authorization
+    if auth and hmac.compare_digest(auth.username or "", config.AUTH_USER) \
+            and hmac.compare_digest(auth.password or "", config.AUTH_PASSWORD):
+        return None
+    return Response(
+        "需要登录", 401,
+        {"WWW-Authenticate": 'Basic realm="Restricted"'},
+    )
 
 
 # ── 页面 ─────────────────────────────────────────────────────────────────────
