@@ -6,6 +6,7 @@ import config
 import db
 import parser
 import calendar_writer
+import ics_feed
 
 app = Flask(__name__)
 db.init_db()
@@ -17,6 +18,9 @@ def _require_auth():
     if not (config.AUTH_USER and config.AUTH_PASSWORD):
         return None
     if request.path == "/logout":
+        return None
+    # iCal 订阅源用路径中的令牌验证，免登录（供苹果日历访问）
+    if request.path.startswith("/calendar/") and request.path.endswith(".ics"):
         return None
     auth = request.authorization
     if auth and hmac.compare_digest(auth.username or "", config.AUTH_USER) \
@@ -59,6 +63,18 @@ def logout():
 </body>
 </html>"""
     return Response(html, 200, {"Content-Type": "text/html; charset=utf-8"})
+
+
+@app.route("/calendar/<token>.ics")
+def calendar_feed(token):
+    """iCal 订阅源：Mac 日历订阅此地址即可自动同步作业与提醒。"""
+    if not config.CALENDAR_TOKEN or not hmac.compare_digest(token, config.CALENDAR_TOKEN):
+        return Response("Not Found", 404)
+    ics = ics_feed.build_ics(db.get_all_homework())
+    return Response(
+        ics, 200,
+        {"Content-Type": "text/calendar; charset=utf-8"},
+    )
 
 
 # ── API ──────────────────────────────────────────────────────────────────────
