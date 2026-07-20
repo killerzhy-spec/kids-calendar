@@ -14,7 +14,7 @@ OPENAI_MODEL    = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 CHILDREN = ["张诺然", "徐若愚"]
 
 # ── 数据库 ───────────────────────────────────────────────────
-DB_PATH = "homework.db"
+DB_PATH = os.environ.get("DB_PATH", "homework.db")
 
 # ── 苹果日历名称 ─────────────────────────────────────────────
 CALENDAR_NAME = "孩子作业提醒"

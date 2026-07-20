@@ -218,5 +218,8 @@ def api_batch_delete():
 # ── 入口 ─────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("🚀  作业日历助手已启动 → http://localhost:5001")
-    app.run(debug=False, port=5001)
+    import os
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "5001"))
+    print(f"🚀  作业日历助手已启动 → http://{host}:{port}")
+    app.run(debug=False, host=host, port=port)
