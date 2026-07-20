@@ -999,6 +999,16 @@ async function updateStatus(id, field, value) {
   });
 }
 
+/* 日历详情里修改状态后刷新当日详情 */
+async function updateStatusCal(id, field, value, dateStr) {
+  await updateStatus(id, field, value);
+  const res = await fetch('/api/homework');
+  const data = await res.json();
+  allHomeworkData = data.homeworks;
+  const hws = allHomeworkData.filter(hw => (hw.deadline || '').split(' ')[0] === dateStr);
+  showDateDetail(dateStr, hws);
+}
+
 async function deleteHw(e, id) {
   e.stopPropagation();
   if (!confirm('确认删除？')) return;
@@ -1124,6 +1134,17 @@ function showDateDetail(dateStr, hws) {
       <div class="font-semibold text-base text-primary">${hw.child_name} · ${hw.subject}</div>
       <p class="text-sm text-secondary mt-1 whitespace-pre-wrap">${hw.content}</p>
       ${hw.requirements ? `<p class="text-xs text-secondary mt-1 whitespace-pre-wrap">要求：${hw.requirements}</p>` : ''}
+      <div class="flex gap-2 mt-3" onclick="event.stopPropagation()">
+        <select onchange="updateStatusCal(${hw.id},'submission_status',this.value,'${dateStr}')" class="input-philips text-xs flex-1">
+          <option ${hw.submission_status === '未提交' ? 'selected' : ''}>未提交</option>
+          <option ${hw.submission_status === '已提交' ? 'selected' : ''}>已提交</option>
+        </select>
+        <select onchange="updateStatusCal(${hw.id},'correction_status',this.value,'${dateStr}')" class="input-philips text-xs flex-1">
+          <option ${hw.correction_status === '无需订正' ? 'selected' : ''}>无需订正</option>
+          <option ${hw.correction_status === '待订正' ? 'selected' : ''}>待订正</option>
+          <option ${hw.correction_status === '已订正' ? 'selected' : ''}>已订正</option>
+        </select>
+      </div>
     </div>
   `;
     }).join('');
@@ -1188,7 +1209,7 @@ async function saveEdit() {
 
 /* ─── 页面初始化 ────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  loadList();
+  switchListView('calendar');
   initVersionNotes();
 });
 
