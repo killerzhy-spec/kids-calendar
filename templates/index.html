@@ -505,10 +505,10 @@
       <div id="homework-cards" class="space-y-4 mb-6"></div>
 
       <div class="card-philips flex items-center gap-4">
-        <label class="flex items-center gap-2 cursor-pointer flex-1">
-          <input type="checkbox" id="create-calendar" checked class="w-4 h-4 rounded">
-          <span class="text-sm text-secondary">保存到日历并设置提醒</span>
-        </label>
+        <input type="checkbox" id="create-calendar" class="hidden">
+        <p class="text-sm text-secondary flex-1">
+          📅 作业保存后会同步到已订阅的苹果日历（约每 15 分钟自动刷新）
+        </p>
         <button id="save-homework-btn" class="btn-primary" onclick="saveHomework()">💾 保存</button>
       </div>
     </div>
