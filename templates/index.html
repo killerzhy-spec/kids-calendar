@@ -939,7 +939,7 @@ function renderList(list) {
             ${overdue ? '<span class="badge badge-warning">逾期</span>' : ''}
           </div>
           <p class="text-secondary text-sm mb-2 whitespace-pre-wrap">${hw.content}</p>
-          ${hw.requirements ? `<p class="text-xs text-secondary opacity-70 mb-2 whitespace-pre-wrap">要求：${hw.requirements}</p>` : ''}
+          ${hw.requirements ? `<p class="text-xs text-secondary opacity-70 mb-2 whitespace-pre-wrap">${hw.requirements}</p>` : ''}
           <p class="text-xs text-secondary opacity-60">📅 ${dl}</p>
         </div>
         <button onclick="deleteHw(event, ${hw.id})" class="text-secondary hover:text-primary text-lg">🗑</button>
@@ -1143,7 +1143,7 @@ function showDateDetail(dateStr, hws) {
     <div class="${childColor} border-l-4 px-3 py-3 rounded cursor-pointer hover:opacity-80 transition-all" onclick="editHomework(${hw.id})">
       <div class="font-semibold text-base text-primary">${hw.child_name} · ${hw.subject}</div>
       <p class="text-sm text-secondary mt-1 whitespace-pre-wrap">${hw.content}</p>
-      ${hw.requirements ? `<p class="text-xs text-secondary mt-1 whitespace-pre-wrap">要求：${hw.requirements}</p>` : ''}
+      ${hw.requirements ? `<p class="text-xs text-secondary mt-1 whitespace-pre-wrap">${hw.requirements}</p>` : ''}
       <div class="flex gap-2 mt-3" onclick="event.stopPropagation()">
         <select onchange="updateStatusCal(${hw.id},'submission_status',this.value,'${dateStr}')" class="input-philips text-xs flex-1">
           <option ${hw.submission_status === '未提交' ? 'selected' : ''}>未提交</option>
