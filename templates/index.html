@@ -113,7 +113,7 @@
       aspect-ratio: 1;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 8px;
+      padding: 2px;
       text-align: center;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -414,9 +414,9 @@
 
       <div class="flex flex-col lg:flex-row gap-4 items-start">
         <!-- 日历网格（左） -->
-        <div class="card-philips w-full lg:w-[340px] lg:flex-shrink-0">
+        <div class="card-philips w-full lg:w-[340px] lg:flex-shrink-0" style="padding:12px">
           <!-- 周标题 -->
-          <div class="grid grid-cols-7 gap-2 mb-4">
+          <div class="grid grid-cols-7 gap-1 mb-3">
             <div class="text-center font-semibold text-secondary text-sm">日</div>
             <div class="text-center font-semibold text-secondary text-sm">一</div>
             <div class="text-center font-semibold text-secondary text-sm">二</div>
@@ -426,7 +426,7 @@
             <div class="text-center font-semibold text-secondary text-sm">六</div>
           </div>
           <!-- 日期格子 -->
-          <div id="cal-grid" class="grid grid-cols-7 gap-2"></div>
+          <div id="cal-grid" class="grid grid-cols-7 gap-1"></div>
         </div>
 
         <!-- 日期详情（右） -->
