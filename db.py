@@ -16,6 +16,8 @@ def init_db():
             id                INTEGER PRIMARY KEY AUTOINCREMENT,
             child_name        TEXT    NOT NULL,
             subject           TEXT    DEFAULT '',
+            teacher           TEXT    DEFAULT '',
+            publish_time      TEXT    DEFAULT '',
             content           TEXT    DEFAULT '',
             requirements      TEXT    DEFAULT '',
             deadline          TEXT    DEFAULT '',
@@ -28,6 +30,11 @@ def init_db():
             created_at        TEXT    DEFAULT (datetime('now','localtime'))
         )
     """)
+    # 兼容旧表：缺失列时自动补充
+    existing = {r["name"] for r in conn.execute("PRAGMA table_info(homework)").fetchall()}
+    for col in ("teacher", "publish_time"):
+        if col not in existing:
+            conn.execute(f"ALTER TABLE homework ADD COLUMN {col} TEXT DEFAULT ''")
     conn.commit()
     conn.close()
 
@@ -114,8 +121,8 @@ def delete_homeworks(hw_ids: list[int]) -> int:
 
 
 def update_homework(hw_id: int, updates: dict):
-    """更新作业的 subject/content/requirements/deadline/recurrence_pattern 字段。"""
-    allowed = {"subject", "content", "requirements", "deadline", "recurrence_pattern"}
+    """更新作业的 subject/content/requirements/deadline/recurrence_pattern 等字段。"""
+    allowed = {"subject", "teacher", "publish_time", "content", "requirements", "deadline", "recurrence_pattern"}
     fields = {k: v for k, v in updates.items() if k in allowed}
     if not fields:
         return

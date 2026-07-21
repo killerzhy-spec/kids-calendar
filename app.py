@@ -245,6 +245,8 @@ def api_edit(hw_id):
     data = request.get_json(silent=True) or {}
     updates = {
         "subject": data.get("subject", ""),
+        "teacher": data.get("teacher", ""),
+        "publish_time": data.get("publish_time", ""),
         "content": data.get("content", ""),
         "requirements": data.get("requirements", ""),
         "deadline": data.get("deadline", ""),
