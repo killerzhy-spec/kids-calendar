@@ -338,7 +338,7 @@
 </head>
 <body class="bg-philips">
 
-<div class="max-w-3xl mx-auto p-6">
+<div class="max-w-5xl mx-auto p-6">
   
   <!-- Header -->
   <div class="mb-8 flex items-start justify-between">
@@ -404,7 +404,7 @@
     </div>
 
     <!-- 日历视图 -->
-    <div id="calendar-view" class="hidden space-y-6">
+    <div id="calendar-view" class="hidden space-y-4">
       <!-- 月份导航 -->
       <div class="flex items-center justify-between">
         <button class="btn-secondary" onclick="calPrevMonth()">← 上个月</button>
@@ -412,29 +412,31 @@
         <button class="btn-secondary" onclick="calNextMonth()">下个月 →</button>
       </div>
 
-      <!-- 日历网格 -->
-      <div class="card-philips">
-        <!-- 周标题 -->
-        <div class="grid grid-cols-7 gap-2 mb-4">
-          <div class="text-center font-semibold text-secondary text-sm">日</div>
-          <div class="text-center font-semibold text-secondary text-sm">一</div>
-          <div class="text-center font-semibold text-secondary text-sm">二</div>
-          <div class="text-center font-semibold text-secondary text-sm">三</div>
-          <div class="text-center font-semibold text-secondary text-sm">四</div>
-          <div class="text-center font-semibold text-secondary text-sm">五</div>
-          <div class="text-center font-semibold text-secondary text-sm">六</div>
+      <div class="flex flex-col lg:flex-row gap-4 items-start">
+        <!-- 日历网格（左） -->
+        <div class="card-philips flex-1 w-full">
+          <!-- 周标题 -->
+          <div class="grid grid-cols-7 gap-2 mb-4">
+            <div class="text-center font-semibold text-secondary text-sm">日</div>
+            <div class="text-center font-semibold text-secondary text-sm">一</div>
+            <div class="text-center font-semibold text-secondary text-sm">二</div>
+            <div class="text-center font-semibold text-secondary text-sm">三</div>
+            <div class="text-center font-semibold text-secondary text-sm">四</div>
+            <div class="text-center font-semibold text-secondary text-sm">五</div>
+            <div class="text-center font-semibold text-secondary text-sm">六</div>
+          </div>
+          <!-- 日期格子 -->
+          <div id="cal-grid" class="grid grid-cols-7 gap-2"></div>
         </div>
-        <!-- 日期格子 -->
-        <div id="cal-grid" class="grid grid-cols-7 gap-2"></div>
-      </div>
 
-      <!-- 日期详情 -->
-      <div id="cal-detail" class="hidden card-philips">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-primary" id="detail-date-title"></h3>
-          <button onclick="closeDateDetail()" class="text-secondary hover:text-primary text-lg">✕</button>
+        <!-- 日期详情（右） -->
+        <div id="cal-detail" class="hidden card-philips w-full lg:w-96 lg:flex-shrink-0">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-primary" id="detail-date-title"></h3>
+            <button onclick="closeDateDetail()" class="text-secondary hover:text-primary text-lg">✕</button>
+          </div>
+          <div id="detail-homework-list" class="space-y-3"></div>
         </div>
-        <div id="detail-homework-list" class="space-y-3"></div>
       </div>
     </div>
 
