@@ -410,17 +410,18 @@
     </div>
 
     <!-- 日历视图 -->
-    <div id="calendar-view" class="hidden space-y-4">
-      <!-- 月份导航 -->
-      <div class="flex items-center justify-between">
-        <button class="btn-secondary" onclick="calPrevMonth()">← 上个月</button>
-        <h2 class="text-lg font-semibold text-primary" id="cal-month-title"></h2>
-        <button class="btn-secondary" onclick="calNextMonth()">下个月 →</button>
-      </div>
-
+    <div id="calendar-view" class="hidden">
       <div class="flex flex-col lg:flex-row gap-4 items-start">
-        <!-- 日历网格（左） -->
-        <div class="card-philips w-full lg:w-[340px] lg:flex-shrink-0" style="padding:12px">
+        <!-- 日历（左，跟随滚动） -->
+        <div class="w-full lg:w-[340px] lg:flex-shrink-0 lg:sticky lg:top-4 space-y-3">
+          <!-- 月份导航（与日历等宽，置于顶部） -->
+          <div class="flex items-center justify-between gap-2">
+            <button class="btn-secondary whitespace-nowrap" onclick="calPrevMonth()">← 上月</button>
+            <h2 class="text-base font-semibold text-primary whitespace-nowrap" id="cal-month-title"></h2>
+            <button class="btn-secondary whitespace-nowrap" onclick="calNextMonth()">下月 →</button>
+          </div>
+
+          <div class="card-philips" style="padding:12px">
           <!-- 周标题 -->
           <div class="grid grid-cols-7 gap-1 mb-3">
             <div class="text-center font-semibold text-secondary text-sm">日</div>
@@ -433,6 +434,7 @@
           </div>
           <!-- 日期格子 -->
           <div id="cal-grid" class="grid grid-cols-7 gap-1"></div>
+          </div>
         </div>
 
         <!-- 日期详情（右） -->
