@@ -196,8 +196,21 @@
       border-radius: 50%;
     }
 
+    .calendar-child-marker.done {
+      width: auto;
+      height: auto;
+      border-radius: 0;
+      background: transparent;
+      font-size: 11px;
+      line-height: 1;
+      font-weight: 700;
+      transform: translateY(-1px);
+    }
+
     .calendar-child-marker.zhang { background: var(--zhang); }
     .calendar-child-marker.xu { background: var(--xu); }
+    .calendar-child-marker.done.zhang { color: var(--zhang); }
+    .calendar-child-marker.done.xu { color: var(--xu); }
 
     .detail-zhang {
       background: var(--zhang-light);
@@ -1102,9 +1115,13 @@ async function renderCalendar() {
       : childNames.has('徐若愚') ? 'child-xu' : '';
     const zhangCount = hws.filter(h => h.child_name === '张诺然').length;
     const xuCount = hws.filter(h => h.child_name === '徐若愚').length;
+    const zhangSubmitted = hws.filter(h => h.child_name === '张诺然' && h.submission_status === '已提交').length;
+    const xuSubmitted = hws.filter(h => h.child_name === '徐若愚' && h.submission_status === '已提交').length;
+    const zhangDone = zhangCount > 0 && zhangSubmitted === zhangCount;
+    const xuDone = xuCount > 0 && xuSubmitted === xuCount;
     const childMarkers = [
-      zhangCount ? `<span class="calendar-child-count" title="张诺然 ${zhangCount} 项"><span class="calendar-child-marker zhang"></span>${zhangCount}</span>` : '',
-      xuCount ? `<span class="calendar-child-count" title="徐若愚 ${xuCount} 项"><span class="calendar-child-marker xu"></span>${xuCount}</span>` : ''
+      zhangCount ? `<span class="calendar-child-count" title="张诺然 ${zhangSubmitted}/${zhangCount} 已提交"><span class="calendar-child-marker zhang ${zhangDone ? 'done' : ''}">${zhangDone ? '✓' : ''}</span>${zhangCount}</span>` : '',
+      xuCount ? `<span class="calendar-child-count" title="徐若愚 ${xuSubmitted}/${xuCount} 已提交"><span class="calendar-child-marker xu ${xuDone ? 'done' : ''}">${xuDone ? '✓' : ''}</span>${xuCount}</span>` : ''
     ].join('');
     
     const cell = document.createElement('div');
