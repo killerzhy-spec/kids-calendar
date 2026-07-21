@@ -12,10 +12,10 @@ app = Flask(__name__)
 db.init_db()
 
 
-# ── 访问密码（仅当 AUTH_USER 与 AUTH_PASSWORD 均配置时生效）──────────
+# ── 访问密码（仅当 AUTH_PASSWORD 配置时生效，不校验用户名）──────
 @app.before_request
 def _require_auth():
-    if not (config.AUTH_USER and config.AUTH_PASSWORD):
+    if not config.AUTH_PASSWORD:
         return None
     if request.path == "/logout":
         return None
@@ -23,8 +23,7 @@ def _require_auth():
     if request.path.startswith("/calendar/") and request.path.endswith(".ics"):
         return None
     auth = request.authorization
-    if auth and hmac.compare_digest(auth.username or "", config.AUTH_USER) \
-            and hmac.compare_digest(auth.password or "", config.AUTH_PASSWORD):
+    if auth and hmac.compare_digest(auth.password or "", config.AUTH_PASSWORD):
         return None
     return Response(
         "需要登录", 401,
@@ -40,7 +39,7 @@ def index():
         "index.html",
         children=config.CHILDREN,
         has_api_key=bool(config.OPENAI_API_KEY),
-        auth_enabled=bool(config.AUTH_USER and config.AUTH_PASSWORD),
+        auth_enabled=bool(config.AUTH_PASSWORD),
     )
 
 
