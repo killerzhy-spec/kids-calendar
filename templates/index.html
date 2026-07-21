@@ -1153,7 +1153,11 @@ function showDateDetail(dateStr, hws) {
     const childColor = hw.child_name === '张诺然' ? 'detail-zhang' : 'detail-xu';
     return `
     <div class="${childColor} border-l-4 px-3 py-3 rounded cursor-pointer hover:opacity-80 transition-all" onclick="editHomework(${hw.id})">
-      <div class="font-semibold text-base text-primary">${hw.child_name} · ${hw.subject}</div>
+      <div class="font-semibold text-base text-primary">
+        ${hw.child_name} · ${hw.subject}
+        ${hw.teacher ? `<span class="text-xs text-secondary font-normal ml-1">👩‍🏫 ${hw.teacher}</span>` : ''}
+        ${hw.publish_time ? `<span class="text-xs text-secondary font-normal ml-1">📝 ${hw.publish_time}</span>` : ''}
+      </div>
       <p class="text-sm text-secondary mt-1 whitespace-pre-wrap">${hw.content}</p>
       ${hw.requirements ? `<p class="text-xs text-secondary mt-1 whitespace-pre-wrap">${hw.requirements}</p>` : ''}
       <div class="flex gap-2 mt-3" onclick="event.stopPropagation()">
