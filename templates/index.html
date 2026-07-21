@@ -551,16 +551,16 @@
 
         <div class="flex items-center gap-3">
           <label class="text-sm font-medium text-secondary w-16 shrink-0">发布时间</label>
-          <input id="edit-publish-time" type="datetime-local" class="input-philips flex-1">
+          <input id="edit-publish-time" type="text" class="input-philips flex-1">
         </div>
 
         <div class="flex items-start gap-3">
-          <label class="text-sm font-medium text-secondary w-16 shrink-0 pt-2">作业内容</label>
+          <label class="text-sm font-medium text-secondary w-16 shrink-0 pt-2">作业</label>
           <textarea id="edit-content" rows="2" class="input-philips flex-1 resize-none"></textarea>
         </div>
 
         <div class="flex items-start gap-3">
-          <label class="text-sm font-medium text-secondary w-16 shrink-0 pt-2">具体要求</label>
+          <label class="text-sm font-medium text-secondary w-16 shrink-0 pt-2">要求</label>
           <textarea id="edit-requirements" rows="7" class="input-philips flex-1 whitespace-pre-wrap"></textarea>
         </div>
 
@@ -933,7 +933,6 @@ function renderList(list) {
   
   wrap.innerHTML = list.map(hw => {
     const dl = hw.deadline ? new Date(hw.deadline).toLocaleString('zh-CN', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}) : '未设定';
-    const pub = hw.publish_time ? new Date(hw.publish_time).toLocaleString('zh-CN', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}) : '';
     const overdue = hw.deadline && new Date(hw.deadline) < new Date() && hw.submission_status !== '已提交';
     const canEdit = true;
     
@@ -948,12 +947,12 @@ function renderList(list) {
             <span class="font-semibold text-base">${hw.child_name}</span>
             <span class="badge badge-primary">${hw.subject}</span>
             ${hw.teacher ? `<span class="text-xs text-secondary">👩‍🏫 ${hw.teacher}</span>` : ''}
-            ${pub ? `<span class="text-xs text-secondary">📝 ${pub}</span>` : ''}
+            ${hw.publish_time ? `<span class="text-xs text-secondary">📝 ${hw.publish_time}</span>` : ''}
+            <span class="text-xs text-secondary">📅 ${dl}</span>
             ${overdue ? '<span class="badge badge-warning">逾期</span>' : ''}
           </div>
           <p class="text-secondary text-sm mb-2 whitespace-pre-wrap">${hw.content}</p>
           ${hw.requirements ? `<p class="text-xs text-secondary opacity-70 mb-2 whitespace-pre-wrap">${hw.requirements}</p>` : ''}
-          <p class="text-xs text-secondary opacity-60">📅 ${dl}</p>
         </div>
         <button onclick="deleteHw(event, ${hw.id})" class="text-secondary hover:text-primary text-lg">🗑</button>
           </div>
@@ -1194,7 +1193,7 @@ async function editHomework(id) {
   document.getElementById('edit-child').value = hw.child_name;
   document.getElementById('edit-subject').value = hw.subject || '';
   document.getElementById('edit-teacher').value = hw.teacher || '';
-  document.getElementById('edit-publish-time').value = hw.publish_time ? hw.publish_time.replace(' ', 'T') : '';
+  document.getElementById('edit-publish-time').value = hw.publish_time || '';
   document.getElementById('edit-content').value = hw.content || '';
   document.getElementById('edit-requirements').value = hw.requirements || '';
   document.getElementById('edit-deadline').value = hw.deadline ? hw.deadline.replace(' ', 'T') : '';
@@ -1213,7 +1212,7 @@ async function saveEdit() {
   const updates = {
     subject: document.getElementById('edit-subject').value,
     teacher: document.getElementById('edit-teacher').value,
-    publish_time: document.getElementById('edit-publish-time').value.replace('T', ' '),
+    publish_time: document.getElementById('edit-publish-time').value,
     content: document.getElementById('edit-content').value,
     requirements: document.getElementById('edit-requirements').value,
     deadline: document.getElementById('edit-deadline').value.replace('T', ' '),
