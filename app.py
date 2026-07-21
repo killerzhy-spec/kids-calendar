@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, Response
+from flask import Flask, request, jsonify, render_template, Response, session, redirect
 from datetime import datetime, timedelta
 import hmac
 
@@ -9,26 +9,42 @@ import calendar_writer
 import ics_feed
 
 app = Flask(__name__)
+app.secret_key = config.SECRET_KEY
 db.init_db()
 
 
-# ── 访问密码（仅当 AUTH_PASSWORD 配置时生效，不校验用户名）──────
+# ── 访问密码（仅当 AUTH_PASSWORD 配置时生效，网页登录）──────
 @app.before_request
 def _require_auth():
     if not config.AUTH_PASSWORD:
         return None
-    if request.path == "/logout":
+    # 登录/登出页与静态资源放行
+    if request.path in ("/login", "/logout") or request.path.startswith("/static/"):
         return None
     # iCal 订阅源用路径中的令牌验证，免登录（供苹果日历访问）
     if request.path.startswith("/calendar/") and request.path.endswith(".ics"):
         return None
-    auth = request.authorization
-    if auth and hmac.compare_digest(auth.password or "", config.AUTH_PASSWORD):
+    if session.get("authed"):
         return None
-    return Response(
-        "需要登录", 401,
-        {"WWW-Authenticate": 'Basic realm="Restricted"'},
-    )
+    # 未登录：API 返回 401，页面跳转到登录页
+    if request.path.startswith("/api/"):
+        return Response("需要登录", 401)
+    return redirect("/login")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if not config.AUTH_PASSWORD:
+        return redirect("/")
+    error = ""
+    if request.method == "POST":
+        pw = request.form.get("password", "")
+        if hmac.compare_digest(pw, config.AUTH_PASSWORD):
+            session["authed"] = True
+            session.permanent = True
+            return redirect("/")
+        error = "密码错误，请重试"
+    return render_template("login.html", error=error)
 
 
 # ── 页面 ─────────────────────────────────────────────────────────────────────
@@ -45,23 +61,9 @@ def index():
 
 @app.route("/logout")
 def logout():
-    """退出登录：用无效凭据覆盖浏览器缓存的 Basic Auth，再返回首页。"""
-    html = """<!doctype html>
-<html lang="zh-CN">
-<head><meta charset="utf-8"><title>退出登录</title></head>
-<body style="font-family:sans-serif;text-align:center;padding-top:80px;color:#333">
-<p>正在退出登录…</p>
-<script>
-  try {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/', false, 'logout', 'logout-' + Date.now());
-    xhr.send();
-  } catch (e) {}
-  setTimeout(function () { location.href = '/'; }, 300);
-</script>
-</body>
-</html>"""
-    return Response(html, 200, {"Content-Type": "text/html; charset=utf-8"})
+    """退出登录：清除会话并返回登录页。"""
+    session.clear()
+    return redirect("/login")
 
 
 @app.route("/calendar/<token>.ics")

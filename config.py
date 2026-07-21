@@ -27,5 +27,11 @@ REMINDER_MINUTES = [1440, 120]
 AUTH_USER     = os.environ.get("AUTH_USER", "")
 AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD", "")
 
+# ── 会话密钥（用于网页登录的 Cookie 签名）──────────────────────
+# 未显式配置时，从密码与令牌派生一个稳定值，保证重启后登录不失效
+SECRET_KEY = os.environ.get("SECRET_KEY", "") or (
+    "kids-cal:" + AUTH_PASSWORD + ":" + os.environ.get("CALENDAR_TOKEN", "")
+)
+
 # ── iCal 订阅令牌（设置后开启 /calendar/<token>.ics 订阅源）──────
 CALENDAR_TOKEN = os.environ.get("CALENDAR_TOKEN", "")
