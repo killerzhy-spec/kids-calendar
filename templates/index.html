@@ -160,6 +160,16 @@
       border-color: #7f6aa9;
     }
 
+    .cal-cell.past-complete {
+      border-color: #16a34a;
+      box-shadow: inset 0 0 0 1px #16a34a;
+    }
+
+    .cal-cell.today {
+      border-width: 2px;
+      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.18);
+    }
+
     .calendar-legend-dot {
       display: inline-block;
       width: 8px;
@@ -1097,6 +1107,7 @@ async function renderCalendar() {
   const res = await fetch('/api/homework');
   const data = await res.json();
   allHomeworkData = data.homeworks;
+  const todayKey = formatLocalDateKey(new Date());
   
   const year = currentCalendarDate.getFullYear();
   const month = currentCalendarDate.getMonth();
@@ -1137,13 +1148,16 @@ async function renderCalendar() {
     const xuSubmitted = hws.filter(h => h.child_name === '徐若愚' && h.submission_status === '已提交').length;
     const zhangDone = zhangCount > 0 && zhangSubmitted === zhangCount;
     const xuDone = xuCount > 0 && xuSubmitted === xuCount;
+    const allSubmitted = hws.length > 0 && hws.every(h => h.submission_status === '已提交');
+    const isPastDate = dateStr < todayKey;
+    const isToday = dateStr === todayKey;
     const childMarkers = [
       zhangCount ? `<span class="calendar-child-count" title="张诺然 ${zhangSubmitted}/${zhangCount} 已提交"><span class="calendar-child-marker zhang ${zhangDone ? 'done' : ''}">${zhangDone ? '✓' : ''}</span>${zhangCount}</span>` : '',
       xuCount ? `<span class="calendar-child-count" title="徐若愚 ${xuSubmitted}/${xuCount} 已提交"><span class="calendar-child-marker xu ${xuDone ? 'done' : ''}">${xuDone ? '✓' : ''}</span>${xuCount}</span>` : ''
     ].join('');
     
     const cell = document.createElement('div');
-    cell.className = `cal-cell ${!isCurrentMonth ? 'other-month' : ''} ${hws.length ? 'has-task' : ''} ${hws.length ? childColor : ''}`;
+    cell.className = `cal-cell ${!isCurrentMonth ? 'other-month' : ''} ${hws.length ? 'has-task' : ''} ${hws.length ? childColor : ''} ${isPastDate && allSubmitted ? 'past-complete' : ''} ${isToday ? 'today' : ''}`;
     
     cell.innerHTML = `
       <div class="font-semibold text-base">${cellDate.getDate()}</div>
@@ -1158,7 +1172,6 @@ async function renderCalendar() {
 
   const today = new Date();
   if (year === today.getFullYear() && month === today.getMonth()) {
-    const todayKey = formatLocalDateKey(today);
     showDateDetail(todayKey, hwByDate[todayKey] || []);
   } else {
     closeDateDetail();
