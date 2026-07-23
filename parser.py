@@ -6,7 +6,9 @@ parser.py —— 将钉钉群消息解析为结构化作业列表。
 import base64
 import json
 import re
+import socket
 from datetime import datetime
+from urllib.parse import urlparse
 
 import config
 
@@ -101,12 +103,26 @@ def parse_homework_from_image(image_bytes: bytes, child_name: str, mime: str = "
 
 def _parse_image_with_api(image_bytes: bytes, child_name: str, mime: str) -> dict:
     """调用 GPT-4o Vision，一步从截图提取结构化作业。"""
+    ok, reason = _check_openai_reachable()
+    if not ok:
+        return {
+            "homeworks": [],
+            "ocr_text": "",
+            "method": "failed",
+            "error": f"服务器无法连接 OCR 服务：{reason}。请检查服务器外网或更换 OPENAI_BASE_URL。",
+        }
+
     try:
         from openai import OpenAI
     except ImportError:
         return {"homeworks": [], "ocr_text": "", "method": "failed", "error": "openai 包未安装"}
 
-    client = OpenAI(api_key=config.OPENAI_API_KEY, base_url=config.OPENAI_BASE_URL)
+    client = OpenAI(
+        api_key=config.OPENAI_API_KEY,
+        base_url=config.OPENAI_BASE_URL,
+        max_retries=0,
+        timeout=15,
+    )
     today  = datetime.now().strftime("%Y-%m-%d")
     b64    = base64.b64encode(image_bytes).decode()
 
@@ -138,8 +154,6 @@ def _parse_image_with_api(image_bytes: bytes, child_name: str, mime: str) -> dic
                 ],
             }],
             temperature=0.1,
-            # 保持小于 gunicorn worker timeout，避免请求超时时直接触发 500
-            timeout=15,
         )
         raw   = resp.choices[0].message.content.strip()
         match = re.search(r"\{.*\}", raw, re.DOTALL)
@@ -162,6 +176,20 @@ def _parse_image_with_api(image_bytes: bytes, child_name: str, mime: str) -> dic
         return {"homeworks": [], "ocr_text": "", "method": "failed", "error": str(exc)}
 
     return {"homeworks": [], "ocr_text": "", "method": "failed", "error": "未知错误"}
+
+
+def _check_openai_reachable() -> tuple[bool, str]:
+    """预检 OpenAI 地址可达性，防止网络阻塞导致 worker 超时。"""
+    try:
+        parsed = urlparse(config.OPENAI_BASE_URL or "")
+        host = parsed.hostname
+        if not host:
+            return False, "OPENAI_BASE_URL 无效"
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        with socket.create_connection((host, port), timeout=3):
+            return True, "ok"
+    except Exception as exc:
+        return False, str(exc)
 
 
 def _ocr_local(image_bytes: bytes) -> str:
