@@ -832,7 +832,7 @@ function renderCards() {
         <textarea placeholder="作业内容" oninput="cards[${i}].content=this.value" rows="4" class="input-philips text-sm w-full whitespace-pre-wrap">${hw.content}</textarea>
         <textarea placeholder="具体要求（可选）" oninput="cards[${i}].requirements=this.value" rows="2" class="input-philips text-sm w-full whitespace-pre-wrap">${hw.requirements}</textarea>
         <div>
-          <p class="text-xs font-medium text-secondary mb-2">按周重复（选中后自动生成本月剩余日期）</p>
+          <p class="text-xs font-medium text-secondary mb-2">按周重复（选中后自动生成本周剩余日期）</p>
           <div class="flex flex-wrap gap-x-3 gap-y-2">${weekdayOptions}</div>
         </div>
         <div id="deadline-wrap-${i}" class="${hasRecurrence ? 'hidden' : ''}">

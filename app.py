@@ -193,7 +193,7 @@ def _expand_recurring_homework(hw: dict, pattern: str) -> list:
     """
     根据循环模式扩展作业。
     pattern: 逗号分隔的周日期，如 "1,3,5"（周一、周三、周五）
-    返回本月从今天起所有匹配日期的作业副本
+    返回本周从今天起所有匹配日期的作业副本
     """
     if not pattern.strip():
         return [hw]
@@ -210,14 +210,11 @@ def _expand_recurring_homework(hw: dict, pattern: str) -> list:
     
     expanded = []
     today = datetime.now().date()
-    if today.month == 12:
-        next_month = today.replace(year=today.year + 1, month=1, day=1)
-    else:
-        next_month = today.replace(month=today.month + 1, day=1)
-    month_end = next_month - timedelta(days=1)
+    # 仅对本周生效：从今天到本周日
+    week_end = today + timedelta(days=(6 - today.weekday()))
 
     check_date = today
-    while check_date <= month_end:
+    while check_date <= week_end:
         weekday = check_date.weekday()  # 0=周一, 6=周日
 
         # 转换为作业中的 weekday 格式（0=周日, 1=周一, ..., 6=周六）
