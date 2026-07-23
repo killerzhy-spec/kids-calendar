@@ -502,6 +502,7 @@
           <div id="drop-placeholder" class="text-center">
             <div class="text-3xl mb-3">📸</div>
             <p class="text-sm text-secondary">将截图拖放到这里或<span class="text-primary font-medium cursor-pointer">点击选择</span></p>
+            <p class="text-xs text-secondary mt-2">支持 Ctrl/Cmd + V 直接粘贴截图</p>
           </div>
           <div id="drop-preview" class="hidden text-center">
             <img id="preview-img" class="max-h-40 mx-auto rounded-lg mb-2">
@@ -733,6 +734,31 @@ function clearImage() {
   document.getElementById('drop-placeholder').classList.remove('hidden');
   document.getElementById('drop-preview').classList.add('hidden');
   document.getElementById('clear-img-btn').classList.add('hidden');
+}
+
+function initPasteUpload() {
+  document.addEventListener('paste', (e) => {
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items || !items.length) return;
+
+    // 若正在输入文本，且剪贴板里没有图片，则不拦截默认粘贴行为
+    let imageItem = null;
+    for (const item of items) {
+      if (item.type && item.type.startsWith('image/')) {
+        imageItem = item;
+        break;
+      }
+    }
+    if (!imageItem) return;
+
+    const file = imageItem.getAsFile();
+    if (!file) return;
+
+    e.preventDefault();
+    switchTab('parse');
+    setMode('image');
+    setImageFile(file);
+  });
 }
 
 /* ─── 标签切换 ────────────────────────────────────────────── */
@@ -1297,6 +1323,7 @@ async function saveEdit() {
 document.addEventListener('DOMContentLoaded', () => {
   switchListView('calendar');
   initVersionNotes();
+  initPasteUpload();
 });
 
 document.addEventListener('keydown', e => {
