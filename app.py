@@ -13,6 +13,11 @@ app.secret_key = config.SECRET_KEY
 db.init_db()
 
 
+def _teacher_by_child_subject(child_name: str, subject: str) -> str:
+    child_map = config.SUBJECT_TEACHER_MAP.get((child_name or "").strip(), {})
+    return child_map.get((subject or "").strip(), "")
+
+
 # ── 访问密码（仅当 AUTH_PASSWORD 配置时生效，网页登录）──────
 @app.before_request
 def _require_auth():
@@ -133,6 +138,8 @@ def api_save():
     for i, hw in enumerate(homeworks):
         print(f"[保存] 处理作业 {i+1}: {hw.get('child_name')} - {hw.get('subject')}")
         hw["source_text"] = source_text
+        if not (hw.get("teacher") or "").strip():
+            hw["teacher"] = _teacher_by_child_subject(hw.get("child_name", ""), hw.get("subject", ""))
         
         # 处理循环模式
         pattern = (hw.get("recurrence_pattern") or "").strip()
@@ -143,6 +150,10 @@ def api_save():
             
             for expanded_hw in expanded_hws:
                 expanded_hw["source_text"] = source_text
+                if not (expanded_hw.get("teacher") or "").strip():
+                    expanded_hw["teacher"] = _teacher_by_child_subject(
+                        expanded_hw.get("child_name", ""), expanded_hw.get("subject", "")
+                    )
                 if db.homework_exists(expanded_hw):
                     duplicate_count += 1
                     print(f"[保存]   跳过重复作业: {expanded_hw.get('deadline')}")
@@ -244,9 +255,13 @@ def api_update_status(hw_id):
 def api_edit(hw_id):
     """编辑作业的科目、内容、要求、截止时间。"""
     data = request.get_json(silent=True) or {}
+    teacher = data.get("teacher", "")
+    if not (teacher or "").strip():
+        # 编辑场景如果未传 teacher，尝试用传入 child_name+subject 自动匹配
+        teacher = _teacher_by_child_subject(data.get("child_name", ""), data.get("subject", ""))
     updates = {
         "subject": data.get("subject", ""),
-        "teacher": data.get("teacher", ""),
+        "teacher": teacher,
         "publish_time": data.get("publish_time", ""),
         "content": data.get("content", ""),
         "requirements": data.get("requirements", ""),

@@ -35,3 +35,17 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "") or (
 
 # ── iCal 订阅令牌（设置后开启 /calendar/<token>.ics 订阅源）──────
 CALENDAR_TOKEN = os.environ.get("CALENDAR_TOKEN", "")
+
+# ── 孩子+学科 对应老师映射 ───────────────────────────────────
+SUBJECT_TEACHER_MAP = {
+    "张诺然": {
+        "数学": "王婷婷老师",
+        "语文": "晁静老师（班主任）",
+        "英语": "胡清月老师",
+    },
+    "徐若愚": {
+        "数学": "李老师（班主任）",
+        "语文": "詹老师",
+        "英语": "黄老师",
+    },
+}

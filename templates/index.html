@@ -554,7 +554,7 @@
 
         <div class="flex items-center gap-3">
           <label class="text-sm font-medium text-secondary w-16 shrink-0">科目</label>
-          <input id="edit-subject" type="text" list="subject-list" class="input-philips flex-1">
+          <input id="edit-subject" type="text" list="subject-list" oninput="syncEditTeacherBySubject()" class="input-philips flex-1">
         </div>
 
         <div class="flex items-center gap-3">
@@ -624,6 +624,23 @@ let sourceText = '';
 let cards = [];
 let currentFile = null;
 const VERSION_STORAGE_KEY = 'kids_calendar_version_notes';
+const SUBJECT_TEACHER_MAP = {
+  '张诺然': {
+    '数学': '王婷婷老师',
+    '语文': '晁静老师（班主任）',
+    '英语': '胡清月老师'
+  },
+  '徐若愚': {
+    '数学': '李老师（班主任）',
+    '语文': '詹老师',
+    '英语': '黄老师'
+  }
+};
+
+function getTeacherByChildSubject(childName, subject) {
+  const childMap = SUBJECT_TEACHER_MAP[(childName || '').trim()] || {};
+  return childMap[(subject || '').trim()] || '';
+}
 
 function toggleVersionPanel(forceOpen) {
   const panel = document.getElementById('version-panel');
@@ -776,7 +793,7 @@ async function ocrImage() {
 /* ─── 手动添加 ────────────────────────────────────────────── */
 function addManualCard() {
   const child = document.getElementById('child-select').value;
-  cards.push({ child_name: child, subject: '', content: '', requirements: '', deadline: '' });
+  cards.push({ child_name: child, subject: '', teacher: '', content: '', requirements: '', deadline: '' });
   renderCards();
   document.getElementById('parse-results').classList.remove('hidden');
 }
@@ -809,8 +826,9 @@ function renderCards() {
       <div class="space-y-2">
         <div class="grid grid-cols-2 gap-3">
           <input placeholder="孩子" value="${hw.child_name}" oninput="cards[${i}].child_name=this.value" class="input-philips text-sm">
-          <input placeholder="科目" list="subject-list" value="${hw.subject}" oninput="cards[${i}].subject=this.value" class="input-philips text-sm">
+          <input placeholder="科目" list="subject-list" value="${hw.subject}" oninput="cards[${i}].subject=this.value;cards[${i}].teacher=getTeacherByChildSubject(cards[${i}].child_name,this.value);renderCards();" class="input-philips text-sm">
         </div>
+        <input placeholder="老师" value="${hw.teacher || getTeacherByChildSubject(hw.child_name, hw.subject)}" oninput="cards[${i}].teacher=this.value" class="input-philips text-sm w-full">
         <textarea placeholder="作业内容" oninput="cards[${i}].content=this.value" rows="4" class="input-philips text-sm w-full whitespace-pre-wrap">${hw.content}</textarea>
         <textarea placeholder="具体要求（可选）" oninput="cards[${i}].requirements=this.value" rows="2" class="input-philips text-sm w-full whitespace-pre-wrap">${hw.requirements}</textarea>
         <div>
@@ -1227,10 +1245,18 @@ function closeEditModal() {
   document.getElementById('edit-modal').classList.add('hidden');
 }
 
+function syncEditTeacherBySubject() {
+  const child = document.getElementById('edit-child').value || '';
+  const subject = document.getElementById('edit-subject').value || '';
+  const teacher = getTeacherByChildSubject(child, subject);
+  if (teacher) document.getElementById('edit-teacher').value = teacher;
+}
+
 async function saveEdit() {
   if (!editingId) return;
   
   const updates = {
+    child_name: document.getElementById('edit-child').value,
     subject: document.getElementById('edit-subject').value,
     teacher: document.getElementById('edit-teacher').value,
     publish_time: document.getElementById('edit-publish-time').value,

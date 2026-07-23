@@ -43,12 +43,14 @@ def insert_homework(hw: dict) -> int:
     conn = get_conn()
     cur = conn.execute(
         """INSERT INTO homework
-           (child_name, subject, content, requirements, deadline,
+           (child_name, subject, teacher, publish_time, content, requirements, deadline,
             recurrence_pattern, source_text, calendar_event_uid)
-           VALUES (?,?,?,?,?,?,?,?)""",
+           VALUES (?,?,?,?,?,?,?,?,?,?)""",
         (
             hw.get("child_name", ""),
             hw.get("subject", ""),
+            hw.get("teacher", ""),
+            hw.get("publish_time", ""),
             hw.get("content", ""),
             hw.get("requirements", ""),
             hw.get("deadline", ""),
