@@ -138,7 +138,8 @@ def _parse_image_with_api(image_bytes: bytes, child_name: str, mime: str) -> dic
                 ],
             }],
             temperature=0.1,
-            timeout=60,
+            # 保持小于 gunicorn worker timeout，避免请求超时时直接触发 500
+            timeout=15,
         )
         raw   = resp.choices[0].message.content.strip()
         match = re.search(r"\{.*\}", raw, re.DOTALL)
