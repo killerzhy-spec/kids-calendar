@@ -408,7 +408,7 @@
       <div class="flex gap-2 items-center ml-auto">
         <span class="text-xs text-secondary"><i class="calendar-legend-dot zhang"></i>张诺然</span>
         <span class="text-xs text-secondary"><i class="calendar-legend-dot xu"></i>徐若愚</span>
-        <button class="btn-secondary" id="btn-list-view" onclick="switchListView('list')">📋 列表</button>
+        <button class="btn-secondary" id="btn-list-view" onclick="switchToListView()">📋 列表</button>
         <button class="btn-secondary" id="btn-cal-view" onclick="switchListView('calendar')">📅 日历</button>
       </div>
     </div>
@@ -944,6 +944,7 @@ async function saveHomework() {
 /* ─── 作业清单 ────────────────────────────────────────────── */
 let currentListWeekStart = getWeekStart(new Date());
 let selectedHomeworkIds = new Set();
+let selectedListDateKey = '';
 
 function getWeekStart(date) {
   const result = new Date(date);
@@ -954,6 +955,12 @@ function getWeekStart(date) {
 }
 
 function updateListWeekTitle() {
+  if (selectedListDateKey) {
+    const day = new Date(selectedListDateKey + 'T00:00:00');
+    const label = day.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric', weekday: 'short' });
+    document.getElementById('list-week-title').textContent = `${label} 作业`;
+    return;
+  }
   const weekEnd = new Date(currentListWeekStart);
   weekEnd.setDate(weekEnd.getDate() + 6);
   const startLabel = currentListWeekStart.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
@@ -962,8 +969,19 @@ function updateListWeekTitle() {
 }
 
 function shiftListWeek(offset) {
+  selectedListDateKey = '';
   currentListWeekStart.setDate(currentListWeekStart.getDate() + offset * 7);
   loadList();
+}
+
+function switchToListView() {
+  selectedListDateKey = '';
+  switchListView('list');
+}
+
+function jumpToDateList(dateStr) {
+  selectedListDateKey = dateStr;
+  switchListView('list');
 }
 
 async function loadList() {
@@ -978,6 +996,7 @@ async function loadList() {
   const data = await res.json();
   let list = data.homeworks.filter(hw => {
     const deadlineKey = (hw.deadline || '').split(' ')[0];
+    if (selectedListDateKey) return deadlineKey === selectedListDateKey;
     return deadlineKey >= weekStartKey && deadlineKey <= weekEndKey;
   });
   
@@ -1190,9 +1209,7 @@ async function renderCalendar() {
       ${childMarkers ? `<div class="calendar-child-markers">${childMarkers}</div>` : ''}
     `;
     
-    if (hws.length > 0) {
-      cell.onclick = () => showDateDetail(dateStr, hws);
-    }
+    cell.onclick = () => jumpToDateList(dateStr);
     grid.appendChild(cell);
   }
 
