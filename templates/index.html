@@ -697,6 +697,35 @@ function getTeacherByChildSubject(childName, subject) {
   return childMap[(subject || '').trim()] || '';
 }
 
+function inferSubjectFromText(text) {
+  const t = (text || '').toLowerCase();
+  if (!t) return '';
+
+  if (/(语文|作文|阅读|课文|生字|拼音|默写|古诗|写字|日记)/.test(t)) return '语文';
+  if (/(数学|口算|计算|应用题|方程|几何|奥数|竖式)/.test(t)) return '数学';
+  if (/(英语|english|单词|听力|背诵|朗读|phonics|课文录音)/.test(t)) return '英语';
+  if (/(科学|实验|观察记录|科探|自然)/.test(t)) return '科学';
+  if (/(体育|跳绳|跑步|仰卧起坐|体能|运动)/.test(t)) return '体育';
+  if (/(美术|绘画|画画|手工|涂色)/.test(t)) return '美术';
+  if (/(音乐|唱歌|乐理|节奏|竖笛)/.test(t)) return '音乐';
+  if (/(道法|道德与法治|法治)/.test(t)) return '道法';
+  return '';
+}
+
+function normalizeParsedHomeworks(homeworks, sourceText) {
+  return (homeworks || []).map(hw => {
+    const next = { ...hw };
+    const mergedText = `${next.content || ''}\n${next.requirements || ''}\n${sourceText || ''}`;
+    if (!(next.subject || '').trim()) {
+      next.subject = inferSubjectFromText(mergedText);
+    }
+    if (!(next.teacher || '').trim() && (next.subject || '').trim()) {
+      next.teacher = getTeacherByChildSubject(next.child_name || '', next.subject || '');
+    }
+    return next;
+  });
+}
+
 function ensureEditSubjectOption(subject) {
   const value = (subject || '').trim();
   if (!value) return;
@@ -852,7 +881,7 @@ async function parseHomework() {
     if (data.error) { alert(data.error); return; }
     
     sourceText = data.source_text;
-    cards = data.homeworks;
+    cards = normalizeParsedHomeworks(data.homeworks, sourceText);
     renderCards();
     document.getElementById('parse-results').classList.remove('hidden');
   } catch(e) { alert('解析失败：' + e.message); }
@@ -872,7 +901,7 @@ async function ocrImage() {
     
     if (data.error) { alert('识别失败：' + data.error); return; }
     
-    cards = data.homeworks || [];
+    cards = normalizeParsedHomeworks(data.homeworks || [], data.ocr_text || '');
     sourceText = data.ocr_text || '';
     if (cards.length) {
       renderCards();
