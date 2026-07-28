@@ -1218,6 +1218,7 @@ function prevBusinessDateKey(dateKey) {
 function updateCheckinBoard(homeworks) {
   const board = document.getElementById('checkin-board');
   if (!board) return;
+  const todayKey = formatLocalDateKey(new Date());
 
   const children = ['张诺然', '徐若愚'];
   const dateStatsByChild = Object.fromEntries(children.map(name => [name, {}]));
@@ -1227,6 +1228,7 @@ function updateCheckinBoard(homeworks) {
     if (!dateStatsByChild[child] || !hw.deadline) return;
 
     const dateKey = (hw.deadline || '').split(' ')[0];
+    if (dateKey < todayKey) return;
     const weekday = new Date(dateKey + 'T00:00:00').getDay();
     if (weekday === 0 || weekday === 6) return;
 
@@ -1266,11 +1268,11 @@ function updateCheckinBoard(homeworks) {
       : s.streak === maxStreak && s.total === maxTotal;
 
     return `
-      <span class="checkin-chip ${isLeader ? 'lead' : ''}" title="${s.name}：连续 ${s.streak} 天（不含周末），累计 ${s.total} 天">
+      <span class="checkin-chip ${isLeader ? 'lead' : ''}" title="${s.name}：今日起连续 ${s.streak} 天（不含周末），今日起累计 ${s.total} 天">
         ${isLeader ? '<span class="checkin-medal">🏅</span>' : ''}
         <span>${s.name}</span>
-        <span>连${s.streak}</span>
-        <span>总${s.total}</span>
+        <span>今日起连${s.streak}</span>
+        <span>今日起总${s.total}</span>
       </span>
     `;
   }).join('');
