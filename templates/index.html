@@ -565,7 +565,7 @@
 
         <div class="flex items-center gap-3">
           <label class="text-sm font-medium text-secondary w-16 shrink-0">科目</label>
-          <input id="edit-subject" type="text" list="subject-list" oninput="syncEditTeacherBySubject()" class="input-philips flex-1">
+          <input id="edit-subject" type="text" list="subject-list" oninput="syncEditTeacherBySubject()" onchange="syncEditTeacherBySubject()" class="input-philips flex-1">
         </div>
 
         <div class="flex items-center gap-3">
@@ -862,7 +862,7 @@ function renderCards() {
       <div class="space-y-2">
         <div class="grid grid-cols-2 gap-3">
           <input placeholder="孩子" value="${hw.child_name}" oninput="cards[${i}].child_name=this.value" class="input-philips text-sm">
-          <input placeholder="科目" list="subject-list" value="${hw.subject}" oninput="cards[${i}].subject=this.value;cards[${i}].teacher=getTeacherByChildSubject(cards[${i}].child_name,this.value);renderCards();" class="input-philips text-sm">
+          <input placeholder="科目" list="subject-list" value="${hw.subject}" oninput="cards[${i}].subject=this.value;const t=getTeacherByChildSubject(cards[${i}].child_name,this.value);if(t){cards[${i}].teacher=t;}renderCards();" onchange="cards[${i}].subject=this.value;const t=getTeacherByChildSubject(cards[${i}].child_name,this.value);if(t){cards[${i}].teacher=t;}renderCards();" class="input-philips text-sm">
         </div>
         <input placeholder="老师" value="${hw.teacher || getTeacherByChildSubject(hw.child_name, hw.subject)}" oninput="cards[${i}].teacher=this.value" class="input-philips text-sm w-full">
         <textarea placeholder="作业内容" oninput="cards[${i}].content=this.value" rows="4" class="input-philips text-sm w-full whitespace-pre-wrap">${hw.content}</textarea>
