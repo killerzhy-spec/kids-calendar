@@ -1228,6 +1228,7 @@ function switchListView(mode) {
 /* ─── 日历视图 ────────────────────────────────────────────── */
 let currentCalendarDate = new Date();
 let allHomeworkData = [];
+const CHECKIN_COUNT_START_DATE = '2026-07-28';
 
 function formatLocalDateKey(date) {
   const year = date.getFullYear();
@@ -1244,10 +1245,19 @@ function prevBusinessDateKey(dateKey) {
   return formatLocalDateKey(d);
 }
 
+function getCheckinAnchorDateKey(todayKey) {
+  const d = new Date(todayKey + 'T00:00:00');
+  while (d.getDay() === 0 || d.getDay() === 6) {
+    d.setDate(d.getDate() - 1);
+  }
+  return formatLocalDateKey(d);
+}
+
 function updateCheckinBoard(homeworks) {
   const board = document.getElementById('checkin-board');
   if (!board) return;
   const todayKey = formatLocalDateKey(new Date());
+  const anchorKey = getCheckinAnchorDateKey(todayKey);
 
   const children = ['张诺然', '徐若愚'];
   const dateStatsByChild = Object.fromEntries(children.map(name => [name, {}]));
@@ -1257,7 +1267,7 @@ function updateCheckinBoard(homeworks) {
     if (!dateStatsByChild[child] || !hw.deadline) return;
 
     const dateKey = (hw.deadline || '').split(' ')[0];
-    if (dateKey < todayKey) return;
+    if (dateKey < CHECKIN_COUNT_START_DATE || dateKey > todayKey) return;
     const weekday = new Date(dateKey + 'T00:00:00').getDay();
     if (weekday === 0 || weekday === 6) return;
 
@@ -1272,16 +1282,18 @@ function updateCheckinBoard(homeworks) {
     const doneDays = Object.keys(dateMap)
       .filter(dateKey => dateMap[dateKey].total > 0 && dateMap[dateKey].submitted === dateMap[dateKey].total)
       .sort();
+    const doneDaySet = new Set(doneDays);
 
     let streak = 0;
-    for (let i = doneDays.length - 1; i >= 0; i--) {
-      if (i === doneDays.length - 1) {
-        streak = 1;
-        continue;
+    if (anchorKey >= CHECKIN_COUNT_START_DATE && doneDaySet.has(anchorKey)) {
+      streak = 1;
+      let cursor = anchorKey;
+      while (true) {
+        const prevKey = prevBusinessDateKey(cursor);
+        if (prevKey < CHECKIN_COUNT_START_DATE || !doneDaySet.has(prevKey)) break;
+        streak += 1;
+        cursor = prevKey;
       }
-      const expectedPrev = prevBusinessDateKey(doneDays[i + 1]);
-      if (doneDays[i] === expectedPrev) streak += 1;
-      else break;
     }
 
     return { name, streak, total: doneDays.length };
