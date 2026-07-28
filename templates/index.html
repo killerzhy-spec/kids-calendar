@@ -565,7 +565,18 @@
 
         <div class="flex items-center gap-3">
           <label class="text-sm font-medium text-secondary w-16 shrink-0">科目</label>
-          <input id="edit-subject" type="text" list="subject-list" oninput="syncEditTeacherBySubject()" onchange="syncEditTeacherBySubject()" class="input-philips flex-1">
+          <select id="edit-subject" onchange="syncEditTeacherBySubject()" class="input-philips flex-1">
+            <option value="">请选择科目</option>
+            <option>语文</option>
+            <option>数学</option>
+            <option>英语</option>
+            <option>科学</option>
+            <option>体育</option>
+            <option>美术</option>
+            <option>音乐</option>
+            <option>道法</option>
+            <option>其他</option>
+          </select>
         </div>
 
         <div class="flex items-center gap-3">
@@ -606,6 +617,7 @@
 <datalist id="subject-list">
   <option>语文</option><option>数学</option><option>英语</option>
   <option>科学</option><option>体育</option><option>美术</option>
+  <option>音乐</option><option>道法</option><option>其他</option>
 </datalist>
 
 <button id="version-fab" class="version-fab" onclick="toggleVersionPanel()">v1.0.0</button>
@@ -651,6 +663,19 @@ const SUBJECT_TEACHER_MAP = {
 function getTeacherByChildSubject(childName, subject) {
   const childMap = SUBJECT_TEACHER_MAP[(childName || '').trim()] || {};
   return childMap[(subject || '').trim()] || '';
+}
+
+function ensureEditSubjectOption(subject) {
+  const value = (subject || '').trim();
+  if (!value) return;
+  const select = document.getElementById('edit-subject');
+  const exists = Array.from(select.options).some(opt => opt.value === value);
+  if (!exists) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = value;
+    select.appendChild(opt);
+  }
 }
 
 function toggleVersionPanel(forceOpen) {
@@ -1286,6 +1311,7 @@ async function editHomework(id) {
   
   editingId = id;
   document.getElementById('edit-child').value = hw.child_name;
+  ensureEditSubjectOption(hw.subject || '');
   document.getElementById('edit-subject').value = hw.subject || '';
   document.getElementById('edit-teacher').value = hw.teacher || '';
   document.getElementById('edit-publish-time').value = hw.publish_time || '';
