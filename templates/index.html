@@ -1209,13 +1209,7 @@ async function renderCalendar() {
       ${childMarkers ? `<div class="calendar-child-markers">${childMarkers}</div>` : ''}
     `;
     
-    cell.onclick = () => {
-      if (hws.length) {
-        jumpToDateList(dateStr);
-      } else {
-        showDateDetail(dateStr, []);
-      }
-    };
+    cell.onclick = () => showDateDetail(dateStr, hws);
     grid.appendChild(cell);
   }
 
