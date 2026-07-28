@@ -1297,14 +1297,31 @@ function updateCheckinBoard(homeworks) {
       : s.streak === maxStreak && s.total === maxTotal;
 
     return `
-      <span class="checkin-chip ${isLeader ? 'lead' : ''}" title="${s.name}：今日起连续 ${s.streak} 天（不含周末），今日起累计 ${s.total} 天">
+      <span class="checkin-chip ${isLeader ? 'lead' : ''}" title="${s.name}：连续 ${s.streak} 天（不含周末），累计 ${s.total} 天">
         ${isLeader ? '<span class="checkin-medal">🏅</span>' : ''}
         <span>${s.name}</span>
-        <span>今日起连${s.streak}</span>
-        <span>今日起总${s.total}</span>
+        <span>连${s.streak}</span>
+        <span>总${s.total}</span>
       </span>
     `;
   }).join('');
+}
+
+let autoRefreshTimer = null;
+
+function startAutoRefresh() {
+  if (autoRefreshTimer) return;
+  autoRefreshTimer = setInterval(async () => {
+    if (!document.hasFocus()) return;
+    if (!document.getElementById('edit-modal').classList.contains('hidden')) return;
+
+    const inCalendar = !document.getElementById('calendar-view').classList.contains('hidden');
+    if (inCalendar) {
+      await renderCalendar();
+    } else {
+      await loadList();
+    }
+  }, 30000);
 }
 
 async function renderCalendar() {
@@ -1502,6 +1519,7 @@ document.addEventListener('DOMContentLoaded', () => {
   switchListView('calendar');
   initVersionNotes();
   initPasteUpload();
+  startAutoRefresh();
 });
 
 document.addEventListener('keydown', e => {
